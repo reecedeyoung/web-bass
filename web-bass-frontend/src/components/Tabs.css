@@ -1,0 +1,60 @@
+.tabs {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tab-nav {
+  display: flex;
+  background: var(--code-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.tab-btn {
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  color: var(--text);
+  transition: color 0.2s, border-color 0.2s;
+  margin-bottom: -1px;
+}
+
+.tab-btn:hover {
+  color: var(--text-h);
+}
+
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* Centered content (Bass, Presets) */
+.tab-content {
+  padding: 24px;
+  min-height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Full-width content (Settings, Control Mapping) — sections own their padding */
+.tab-content--full {
+  padding: 0;
+  align-items: flex-start;
+}
+
+.tab-content img,
+.bass-guitar svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.placeholder {
+  color: var(--text);
+  font-size: 16px;
+}

@@ -1,0 +1,10 @@
+.fret-dot {
+  fill: var(--accent);
+  fill-opacity: 0;
+  transition: fill-opacity 0.2s ease-out;
+  pointer-events: none;
+}
+
+.fret-dot.visible {
+  fill-opacity: 0.85;
+}

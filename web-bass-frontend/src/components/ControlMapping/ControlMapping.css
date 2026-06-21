@@ -1,0 +1,310 @@
+.control-mapping {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  text-align: left;
+}
+
+/* ── Section ── */
+
+.cm-section {
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cm-section:last-child {
+  border-bottom: none;
+}
+
+.cm-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin: 0 0 16px;
+}
+
+/* ── Subsection ── */
+
+.cm-subsection {
+  margin-top: 16px;
+}
+
+.cm-subsection-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0 0 6px;
+}
+
+/* ── MIDI device list ── */
+
+.cm-device-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cm-device {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--code-bg);
+}
+
+.cm-device--empty {
+  color: var(--text);
+  font-style: italic;
+  border-style: dashed;
+}
+
+.cm-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.cm-status-dot--on {
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
+}
+
+.cm-device-name {
+  flex: 1;
+  color: var(--text-h);
+}
+
+.cm-device-state {
+  font-size: 11px;
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+/* ── String tuning grid ── */
+
+.cm-string-grid {
+  display: grid;
+  grid-template-columns: auto 48px 60px 1fr;
+  gap: 12px 16px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.cm-col-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+/* ── Inline tune control ── */
+
+.cm-tune-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cm-tune-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--accent);
+  font-size: 9px;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.cm-tune-btn:hover:not(:disabled) {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.cm-tune-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.cm-tune-note {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-h);
+  min-width: 28px;
+  text-align: center;
+}
+
+.cm-string-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.cm-key-range {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-h);
+}
+
+.cm-fret-range {
+  font-size: 13px;
+  color: var(--text);
+  font-family: var(--mono);
+}
+
+/* ── Selects & inputs ── */
+
+.cm-note-select {
+  font: inherit;
+  font-size: 13px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+  width: 100%;
+}
+
+.cm-note-select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* ── Advanced toggle ── */
+
+.cm-advanced-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  transition: color 0.15s;
+}
+
+.cm-advanced-toggle:hover {
+  color: var(--text-h);
+}
+
+.cm-advanced-arrow {
+  font-size: 10px;
+  color: var(--accent);
+}
+
+/* ── Advanced fields ── */
+
+.cm-field {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cm-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.cm-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cm-upload-btn {
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--code-bg);
+  color: var(--text-h);
+  cursor: pointer;
+  transition: border-color 0.15s;
+  white-space: nowrap;
+}
+
+.cm-upload-btn:hover {
+  border-color: var(--accent-border);
+}
+
+.cm-upload-name {
+  font-size: 13px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Notices & hints ── */
+
+.cm-notice {
+  font-size: 13px;
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 3px solid;
+}
+
+.cm-notice--info {
+  color: var(--text);
+  background: var(--code-bg);
+  border-color: var(--border);
+}
+
+.cm-notice--warn {
+  color: #92400e;
+  background: rgba(251, 191, 36, 0.1);
+  border-color: #fbbf24;
+}
+
+.cm-notice--error {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cm-notice--warn  { color: #fcd34d; }
+  .cm-notice--error { color: #fca5a5; }
+}
+
+.cm-hint {
+  font-size: 12px;
+  color: var(--text);
+  margin: 4px 0 0;
+}

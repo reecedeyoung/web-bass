@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "key-mapping.schema.json",
+  "title": "KeyMapping",
+  "description": "A named set of keyboard-to-note bindings for the web bass instrument.",
+  "type": "object",
+  "required": ["name", "mappings"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Human-readable name shown in the Presets tab."
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional longer description of the layout."
+    },
+    "version": {
+      "type": "integer",
+      "description": "Schema version for forward-compatibility checks.",
+      "default": 1
+    },
+    "mappings": {
+      "type": "object",
+      "description": "Keys are KeyboardEvent.key values; values are note bindings.",
+      "additionalProperties": {
+        "$ref": "#/$defs/KeyBinding"
+      }
+    }
+  },
+  "$defs": {
+    "KeyBinding": {
+      "type": "object",
+      "required": ["note", "channel"],
+      "additionalProperties": false,
+      "properties": {
+        "note": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 127,
+          "description": "MIDI note number."
+        },
+        "channel": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16,
+          "description": "MIDI channel; maps to a string voice (1=E 2=A 3=D 4=G)."
+        },
+        "label": {
+          "type": "string",
+          "description": "Display label shown in the Control Mapping tab, e.g. 'E1' or 'fret 0'."
+        }
+      }
+    }
+  }
+}

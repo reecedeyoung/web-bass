@@ -1,0 +1,134 @@
+/* ─── Wrapper ───────────────────────────────────────── */
+
+.ms-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.ms-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+/* ─── Button reset + layout ─────────────────────────── */
+
+.ms-switch {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.ms-switch:focus-visible .ms-housing {
+  box-shadow:
+    inset 0 3px 7px rgba(0,0,0,0.7),
+    inset 0 -1px 2px rgba(255,255,255,0.06),
+    0 3px 8px rgba(0,0,0,0.5),
+    0 0 0 2px var(--accent-border);
+}
+
+/* ─── Housing (the dark metal block) ────────────────── */
+
+.ms-housing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 56px;
+  border-radius: 6px;
+
+  /* Dark brushed-metal look */
+  background: linear-gradient(
+    160deg,
+    #3e3e3e 0%,
+    #282828 45%,
+    #1c1c1c 100%
+  );
+  border-top: 1px solid rgba(255,255,255,0.10);
+  border-bottom: 1px solid rgba(0,0,0,0.6);
+  border-left: 1px solid rgba(255,255,255,0.06);
+  border-right: 1px solid rgba(0,0,0,0.5);
+
+  box-shadow:
+    inset 0 3px 7px rgba(0,0,0,0.7),
+    inset 0 -1px 2px rgba(255,255,255,0.05),
+    0 3px 8px rgba(0,0,0,0.5),
+    0 1px 2px rgba(0,0,0,0.7);
+}
+
+/* ─── Slot (recessed channel inside housing) ─────────── */
+
+.ms-slot {
+  position: relative;
+  width: 18px;
+  height: 42px;
+  border-radius: 3px;
+  background: rgba(0,0,0,0.55);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
+}
+
+/* ─── Lever (chrome rod that slides in the slot) ─────── */
+
+.ms-lever {
+  position: absolute;
+  left: 0;
+  width: 18px;
+  height: 22px;
+  border-radius: 3px;
+  transition: top 0.14s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Chrome / brushed-steel gradient — vertical highlight stripe */
+  background: linear-gradient(
+    to right,
+    #888  0%,
+    #ccc  18%,
+    #ebebeb 35%,
+    #f4f4f4 50%,
+    #d8d8d8 65%,
+    #b0b0b0 82%,
+    #787878 100%
+  );
+
+  border-top: 1px solid rgba(255,255,255,0.7);
+  border-bottom: 1px solid rgba(0,0,0,0.35);
+  border-left: 1px solid rgba(255,255,255,0.3);
+  border-right: 1px solid rgba(0,0,0,0.25);
+
+  box-shadow:
+    0 2px 5px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+/* OFF → lever at bottom of slot */
+.ms-lever {
+  top: 20px;
+}
+
+/* ON → lever at top of slot */
+.ms-switch--on .ms-lever {
+  top: 0;
+}
+
+/* ─── State label ────────────────────────────────────── */
+
+.ms-state-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  font-family: var(--mono);
+  color: var(--text);
+  transition: color 0.14s;
+}
+
+.ms-switch--on .ms-state-label {
+  color: var(--accent);
+}

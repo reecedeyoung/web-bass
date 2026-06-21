@@ -1,0 +1,90 @@
+.settings-view {
+  width: 100%;
+  text-align: left;
+}
+
+/* ── Section ── */
+
+.sv-section {
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sv-section:last-child {
+  border-bottom: none;
+}
+
+.sv-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.sv-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin: 0;
+}
+
+/* Badge: shows update cadence */
+.sv-section-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-family: var(--mono);
+}
+
+.sv-section-badge--live {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.sv-section-badge--next {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+}
+
+.sv-section-hint {
+  font-size: 12px;
+  color: var(--text);
+  margin: 0 0 20px;
+}
+
+/* ── Knob row ── */
+
+.sv-knobs {
+  display: flex;
+  align-items: flex-end;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+/* ── Switch as a knob-row peer ── */
+
+.sv-switch-param {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 4px; /* optical alignment with knob labels */
+}
+
+/* ── Footnote ── */
+
+.sv-envelope-note {
+  font-size: 12px;
+  color: var(--text);
+  margin: 16px 0 0;
+}
+
+.sv-envelope-note strong {
+  color: var(--text-h);
+}

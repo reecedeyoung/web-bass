@@ -1,0 +1,155 @@
+.presets-view {
+  width: 100%;
+  text-align: left;
+}
+
+/* ── Section ── */
+
+.presets-section {
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.presets-section:last-child {
+  border-bottom: none;
+}
+
+.presets-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin: 0 0 12px;
+}
+
+/* ── Preset list ── */
+
+.presets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Preset card ── */
+
+.preset-card {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.preset-card--active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.preset-card-load {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.preset-card-load:hover {
+  background: var(--accent-bg);
+}
+
+.preset-card--active .preset-card-load:hover {
+  background: none;
+}
+
+.preset-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.3;
+}
+
+.preset-card--active .preset-card-name {
+  color: var(--accent);
+}
+
+.preset-card-desc {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.preset-card-delete {
+  padding: 0 14px;
+  background: none;
+  border: none;
+  border-left: 1px solid var(--border);
+  cursor: pointer;
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+  transition: color 0.15s, background 0.15s;
+}
+
+.preset-card-delete:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+/* ── Save row ── */
+
+.presets-save-row {
+  display: flex;
+  gap: 8px;
+}
+
+.presets-save-input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text-h);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.presets-save-input:focus {
+  border-color: var(--accent);
+}
+
+.presets-save-input::placeholder {
+  color: var(--text);
+  opacity: 0.6;
+}
+
+.presets-save-btn {
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--sans);
+  background: var(--accent-bg);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.presets-save-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.presets-save-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
