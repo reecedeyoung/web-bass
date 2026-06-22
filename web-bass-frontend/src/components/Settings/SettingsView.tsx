@@ -9,7 +9,7 @@ export default function SettingsView() {
   return (
     <div className="settings-view">
 
-      {/* ── Continuous parameters ─────────────────────────────── */}
+      {/* ── Tone ──────────────────────────────────────────── */}
       <section className="sv-section">
         <header className="sv-section-header">
           <h2 className="sv-section-title">Tone</h2>
@@ -30,7 +30,7 @@ export default function SettingsView() {
         </div>
       </section>
 
-      {/* ── Damping parameters ────────────────────────────────── */}
+      {/* ── Damping ───────────────────────────────────────── */}
       <section className="sv-section">
         <header className="sv-section-header">
           <h2 className="sv-section-title">Damping</h2>
@@ -62,7 +62,7 @@ export default function SettingsView() {
         </div>
       </section>
 
-      {/* ── Amp parameters ────────────────────────────────────── */}
+      {/* ── Amp ───────────────────────────────────────────── */}
       <section className="sv-section">
         <header className="sv-section-header">
           <h2 className="sv-section-title">Amp</h2>
@@ -119,7 +119,7 @@ export default function SettingsView() {
         </div>
       </section>
 
-      {/* ── Envelope parameters ───────────────────────────────── */}
+      {/* ── Envelope ──────────────────────────────────────── */}
       <section className="sv-section">
         <header className="sv-section-header">
           <h2 className="sv-section-title">Envelope</h2>
@@ -128,6 +128,12 @@ export default function SettingsView() {
         <p className="sv-section-hint">Changes take effect on the next note played.</p>
 
         <div className="sv-knobs">
+          <MetalSwitch
+            label="Retrigger"
+            value={params.retrigger}
+            onChange={v => setParams({ retrigger: v })}
+          />
+
           <RotaryKnob
             label="Attack"
             minLabel="Clicky"
@@ -138,13 +144,11 @@ export default function SettingsView() {
             formatValue={v => `${Math.round(v * 100)}%`}
           />
 
-          <div className="sv-switch-param">
-            <MetalSwitch
-              label="Sustain"
-              value={params.sustain}
-              onChange={v => setParams({ sustain: v })}
-            />
-          </div>
+          <MetalSwitch
+            label="Sustain"
+            value={params.sustain}
+            onChange={v => setParams({ sustain: v })}
+          />
 
           <RotaryKnob
             label="Release"
@@ -158,14 +162,6 @@ export default function SettingsView() {
             curve="exponential"
             disabled={params.sustain}
           />
-
-          <div className="sv-switch-param">
-            <MetalSwitch
-              label="Retrigger"
-              value={params.retrigger}
-              onChange={v => setParams({ retrigger: v })}
-            />
-          </div>
         </div>
 
         <p className="sv-envelope-note">
@@ -175,7 +171,7 @@ export default function SettingsView() {
         </p>
       </section>
 
-      {/* ── Portamento ────────────────────────────────────────── */}
+      {/* ── Portamento ────────────────────────────────────── */}
       <section className="sv-section">
         <header className="sv-section-header">
           <h2 className="sv-section-title">Portamento</h2>
@@ -184,13 +180,11 @@ export default function SettingsView() {
         <p className="sv-section-hint">Pitch slides between notes on the same string. Most expressive with Retrigger OFF.</p>
 
         <div className="sv-knobs">
-          <div className="sv-switch-param">
-            <MetalSwitch
-              label="Portamento"
-              value={params.portamento}
-              onChange={v => setParams({ portamento: v })}
-            />
-          </div>
+          <MetalSwitch
+            label="Portamento"
+            value={params.portamento}
+            onChange={v => setParams({ portamento: v })}
+          />
 
           <RotaryKnob
             label="Slide Time"

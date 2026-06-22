@@ -1,0 +1,179 @@
+/* ── Overlay ──────────────────────────────────────────────────────────────── */
+
+.bio-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 10, 0.84);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 24px;
+  animation: bio-fade-in 0.18s ease;
+  overflow-y: auto;
+}
+
+@keyframes bio-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Panel ────────────────────────────────────────────────────────────────── */
+
+.bio-panel {
+  width: 100%;
+  max-width: 740px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+
+.bio-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  padding-bottom: 16px;
+}
+
+.bio-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #eeeeee;
+  margin: 0 0 6px;
+  letter-spacing: -0.3px;
+}
+
+.bio-subtitle {
+  font-size: 13px;
+  color: #999999;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* ── Two-column card grid ─────────────────────────────────────────────────── */
+
+.bio-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .bio-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Card ─────────────────────────────────────────────────────────────────── */
+
+.bio-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 16px 18px;
+}
+
+.bio-card-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent, #a22329);
+  margin: 0 0 8px;
+}
+
+.bio-card-hint {
+  font-size: 12px;
+  color: #888888;
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+
+/* ── Keyboard table ───────────────────────────────────────────────────────── */
+
+.bio-kb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.bio-kb-table th {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #666666;
+  text-align: left;
+  padding: 0 0 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.bio-kb-table td {
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+
+.bio-kb-table tr:last-child td {
+  border-bottom: none;
+}
+
+.bio-string-badge {
+  display: inline-block;
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  color: #cccccc;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  padding: 1px 5px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.bio-keys {
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  color: #bbbbbb;
+  background: none;
+  padding: 0;
+  letter-spacing: 0.03em;
+}
+
+.bio-range {
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  color: #777777;
+  white-space: nowrap;
+}
+
+/* ── Tips list ────────────────────────────────────────────────────────────── */
+
+.bio-tips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bio-tips li {
+  font-size: 12px;
+  color: #888888;
+  line-height: 1.5;
+  padding-left: 12px;
+  position: relative;
+}
+
+.bio-tips li::before {
+  content: '–';
+  position: absolute;
+  left: 0;
+  color: var(--accent, #a22329);
+}
+
+.bio-tips li strong {
+  color: #cccccc;
+  font-weight: 600;
+}

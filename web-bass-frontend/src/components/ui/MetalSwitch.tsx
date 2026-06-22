@@ -16,26 +16,32 @@ export default function MetalSwitch({
   offLabel = 'OFF',
 }: MetalSwitchProps) {
   return (
-    <div className="ms-wrap">
+    // ms-switch--on lives on the wrapper so descendant selectors reach both
+    // the rod (inside the button) and the state label (sibling of the button).
+    <div className={`ms-wrap${value ? ' ms-switch--on' : ''}`}>
+
+      {/* Spacer matches the rk-pole-row height so the collar center lines up
+          with the knob SVG center when both sit in an align-items:flex-end row. */}
+      <div className="ms-spacer" aria-hidden="true" />
+
       <button
-        className={`ms-switch${value ? ' ms-switch--on' : ''}`}
+        className="ms-switch"
         onClick={() => onChange(!value)}
         aria-pressed={value}
-        aria-label={label}
+        aria-label={`${label ?? 'Toggle'}: ${value ? onLabel : offLabel}`}
         type="button"
       >
-        {/* Housing */}
-        <span className="ms-housing">
-          {/* Slot recess */}
-          <span className="ms-slot">
-            {/* Chrome lever */}
-            <span className="ms-lever" />
-          </span>
-        </span>
-        {/* State label beside the switch */}
-        <span className="ms-state-label">{value ? onLabel : offLabel}</span>
+        <div className="ms-body">
+          <div className="ms-rod" />
+          <div className="ms-collar">
+            <div className="ms-collar-ring" />
+            <div className="ms-socket" />
+          </div>
+        </div>
       </button>
 
+      {/* These sit at the same nesting level as rk-value / rk-label */}
+      <span className="ms-state-label">{value ? onLabel : offLabel}</span>
       {label && <span className="ms-label">{label}</span>}
     </div>
   )

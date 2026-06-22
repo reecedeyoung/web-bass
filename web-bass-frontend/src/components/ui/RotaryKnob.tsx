@@ -27,7 +27,6 @@ interface RotaryKnobProps {
   disabled?: boolean
 }
 
-// Curve helpers — convert between parameter value and normalised [0,1] position.
 function normFromValue(v: number, min: number, max: number, curve: KnobCurve): number {
   if (curve === 'exponential') return Math.log(v / min) / Math.log(max / min)
   if (typeof curve === 'number') {
@@ -45,7 +44,7 @@ function valueFromNorm(t: number, min: number, max: number, curve: KnobCurve): n
 }
 
 // Knob sweep: 270° clockwise from the 7:30 position to the 4:30 position.
-const START_ANGLE = 225  // degrees clockwise from 12 o'clock
+const START_ANGLE = 225
 const SWEEP = 270
 
 function polarToXY(cx: number, cy: number, r: number, angleDeg: number) {
@@ -66,21 +65,31 @@ export default function RotaryKnob({
   onChange, label, minLabel, maxLabel,
   sensitivity = 160, formatValue, size = 80, curve = 'linear', disabled = false,
 }: RotaryKnobProps) {
-  const uid = useId()
-  const gradId = `rk-grad-${uid.replace(/:/g, '')}`
-  const shadowId = `rk-shadow-${uid.replace(/:/g, '')}`
+  const uid    = useId()
+  const safeId = uid.replace(/:/g, '')
+  const gradTopId = `rk-top-${safeId}`
+  const gradCylId = `rk-cyl-${safeId}`
+  const knurlId   = `rk-kn-${safeId}`
+  const shadowId  = `rk-sh-${safeId}`
 
   const drag = useRef<{ startY: number; startT: number } | null>(null)
 
   const t = Math.max(0, Math.min(1, normFromValue(value, min, max, curve)))
   const cx = size / 2
   const cy = size / 2
-  const trackR = size * 0.40
-  const knobR  = size * 0.275
-  const dotDist = size * 0.19
-  const strokeW = Math.max(3, size * 0.05)
+
+  // Layout proportions
+  const trackR      = size * 0.420   // arc ring radius
+  const trackStroke = Math.max(1.5, size * 0.030)
+  const knobOuterR  = size * 0.315   // outer edge of knob (includes knurled band)
+  const knobTopR    = size * 0.225   // inner edge of knurled band = flat chrome top
+  const indR0       = size * 0.055   // indicator line start (near center)
+  const indR1       = knobTopR * 0.82 // indicator line end (near edge of flat top)
+  const indStroke   = Math.max(1.2, size * 0.024)
 
   const valueAngle = START_ANGLE + t * SWEEP
+  const indP0 = polarToXY(cx, cy, indR0, valueAngle)
+  const indP1 = polarToXY(cx, cy, indR1, valueAngle)
 
   const clamp = (v: number) => Math.max(min, Math.min(max, v))
   const snap  = (v: number) => step ? Math.round(v / step) * step : v
@@ -118,7 +127,6 @@ export default function RotaryKnob({
     }
   }
 
-  const dot = polarToXY(cx, cy, dotDist, valueAngle)
   const displayValue = formatValue ? formatValue(value) : value.toFixed(2)
 
   return (
@@ -145,56 +153,92 @@ export default function RotaryKnob({
         onKeyDown={handleKeyDown}
       >
         <defs>
-          <radialGradient id={gradId} cx="38%" cy="32%" r="65%">
-            <stop offset="0%"   stopColor="#5a5a5a" />
-            <stop offset="55%"  stopColor="#2a2a2a" />
-            <stop offset="100%" stopColor="#181818" />
+          {/*
+            Knurling pattern: two crossed diagonal lines per cell simulate the
+            diamond-pyramid knurl on a chrome barrel knob. The "/" face (#8c8c8c)
+            catches light from upper-left; the "\" face (#363636) is in shadow.
+          */}
+          <pattern id={knurlId} x="0" y="0" width="3" height="3" patternUnits="userSpaceOnUse">
+            <rect width="3" height="3" fill="#5e5e5e"/>
+            <line x1="0" y1="3" x2="3" y2="0" stroke="#8c8c8c" strokeWidth="0.7"/>
+            <line x1="0" y1="0" x2="3" y2="3" stroke="#363636" strokeWidth="0.7"/>
+          </pattern>
+
+          {/* Chrome radial gradient for the flat top face */}
+          <radialGradient id={gradTopId} cx="36%" cy="28%" r="72%">
+            <stop offset="0%"   stopColor="#e4e4e4"/>
+            <stop offset="18%"  stopColor="#cacaca"/>
+            <stop offset="52%"  stopColor="#787878"/>
+            <stop offset="82%"  stopColor="#3e3e3e"/>
+            <stop offset="100%" stopColor="#282828"/>
           </radialGradient>
-          <filter id={shadowId} x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="1.5" stdDeviation="2" floodColor="#000" floodOpacity="0.55" />
+
+          {/*
+            Cylindrical shading overlay for the knurled band: radial gradient
+            originating from the top of the bounding box simulates a cylinder
+            lit from above — top of ring is brighter, bottom falls into shadow.
+          */}
+          <radialGradient id={gradCylId} cx="42%" cy="0%" r="100%" gradientUnits="objectBoundingBox">
+            <stop offset="0%"   stopColor="#ffffff" stopOpacity="0.28"/>
+            <stop offset="40%"  stopColor="#ffffff" stopOpacity="0.05"/>
+            <stop offset="100%" stopColor="#000000" stopOpacity="0.24"/>
+          </radialGradient>
+
+          {/* Drop shadow beneath the knob body */}
+          <filter id={shadowId} x="-28%" y="-28%" width="156%" height="156%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3.5" floodColor="#000" floodOpacity="0.65"/>
           </filter>
         </defs>
 
-        {/* Full-range track */}
+        {/* ── Track: full-range groove ── */}
         <path
           d={arcPath(cx, cy, trackR, START_ANGLE, START_ANGLE + SWEEP)}
           fill="none"
           stroke="var(--border)"
-          strokeWidth={strokeW}
+          strokeWidth={trackStroke}
           strokeLinecap="round"
         />
 
-        {/* Value arc */}
+        {/* ── Track: value fill ── */}
         {t > 0.001 && (
           <path
             d={arcPath(cx, cy, trackR, START_ANGLE, valueAngle)}
             fill="none"
             stroke="var(--accent)"
-            strokeWidth={strokeW}
+            strokeWidth={trackStroke}
             strokeLinecap="round"
           />
         )}
 
-        {/* Knob body */}
-        <circle
-          cx={cx} cy={cy} r={knobR}
-          fill={`url(#${gradId})`}
-          filter={`url(#${shadowId})`}
-        />
+        {/* ── Knob drop shadow ── */}
+        <circle cx={cx} cy={cy} r={knobOuterR} fill="#181818" filter={`url(#${shadowId})`}/>
 
-        {/* Outer ring */}
-        <circle
-          cx={cx} cy={cy} r={knobR}
-          fill="none"
-          stroke="rgba(255,255,255,0.07)"
-          strokeWidth="1"
-        />
+        {/* ── Knurled band: outer circle filled with crosshatch pattern ── */}
+        <circle cx={cx} cy={cy} r={knobOuterR} fill={`url(#${knurlId})`}/>
 
-        {/* Indicator dot */}
-        <circle
-          cx={dot.x} cy={dot.y}
-          r={size * 0.038}
-          fill="rgba(255,255,255,0.9)"
+        {/* ── Cylindrical shading overlay on knurled band ── */}
+        <circle cx={cx} cy={cy} r={knobOuterR} fill={`url(#${gradCylId})`}/>
+
+        {/* ── Outer edge darkening (machined rim) ── */}
+        <circle cx={cx} cy={cy} r={knobOuterR} fill="none" stroke="rgba(0,0,0,0.55)" strokeWidth="1.5"/>
+
+        {/* ── Bevel between knurled band and flat top (machined chamfer highlight) ── */}
+        <circle cx={cx} cy={cy} r={knobTopR + 1.0} fill="none" stroke="rgba(255,255,255,0.30)" strokeWidth="1.4"/>
+        <circle cx={cx} cy={cy} r={knobTopR}        fill="none" stroke="rgba(0,0,0,0.45)"         strokeWidth="1.0"/>
+
+        {/* ── Flat chrome top face ── */}
+        <circle cx={cx} cy={cy} r={knobTopR} fill={`url(#${gradTopId})`}/>
+
+        {/* ── Subtle highlight ring at top face edge ── */}
+        <circle cx={cx} cy={cy} r={knobTopR} fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="0.8"/>
+
+        {/* ── Indicator line ── */}
+        <line
+          x1={indP0.x.toFixed(3)} y1={indP0.y.toFixed(3)}
+          x2={indP1.x.toFixed(3)} y2={indP1.y.toFixed(3)}
+          stroke="rgba(255,255,255,0.92)"
+          strokeWidth={indStroke}
+          strokeLinecap="round"
         />
       </svg>
 

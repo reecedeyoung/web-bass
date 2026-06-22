@@ -1,134 +1,153 @@
-/* ─── Wrapper ───────────────────────────────────────── */
+/* ─── Wrapper ─────────────────────────────────────────────────────────────────
+   Mirrors rk-wrap exactly: column flex, 4px gap, center-aligned.
+   The spacer + 80px body + state-label + label add up to the same total height
+   as the RotaryKnob, so flex-end on the parent row aligns all three text lines. */
 
 .ms-wrap {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+  user-select: none;
 }
 
-.ms-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-h);
+/* ─── Spacer ──────────────────────────────────────────────────────────────────
+   Same height as .rk-pole-row (10px font at line-height 1).
+   Offsets the switch body downward to match the knob's pole-row → SVG offset. */
+
+.ms-spacer {
+  height: 10px;
+  line-height: 1;
 }
 
-/* ─── Button reset + layout ─────────────────────────── */
+/* ─── Button reset ────────────────────────────────────────────────────────── */
 
 .ms-switch {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
+  display: block;
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
-  user-select: none;
   outline: none;
+  border-radius: 8px;
 }
 
-.ms-switch:focus-visible .ms-housing {
+.ms-switch:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent-border);
+}
+
+/* ─── Toggle body ─────────────────────────────────────────────────────────────
+   80px tall (matches the 80×80 knob SVG) so the collar center at 50% (40px)
+   sits on the same horizontal line as the knob's rotational center. */
+
+.ms-body {
+  position: relative;
+  width: 36px;
+  height: 80px;
+  overflow: hidden;
+}
+
+/* ─── Chrome lever rod ────────────────────────────────────────────────────────
+   top=20px + height=40px → center at 40px (collar center).
+   translateY(±22px) pushes one end 27px clear of the collar opening. */
+
+.ms-rod {
+  position: absolute;
+  left: 50%;
+  top: 20px;
+  width: 8px;
+  height: 40px;
+  margin-left: -4px;
+  border-radius: 4px;
+  z-index: 2;
+  background: linear-gradient(to right,
+    #4a4a4a  0%,
+    #969696 16%,
+    #e4e4e4 36%,
+    #f0f0f0 52%,
+    #c0c0c0 70%,
+    #828282 86%,
+    #404040 100%
+  );
+  transform: translateY(22px);
+  transition: transform 0.14s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ms-switch--on .ms-rod {
+  transform: translateY(-22px);
+}
+
+/* ─── Collar (chrome mounting ring) ──────────────────────────────────────────
+   Centered at exactly 50% of the 80px body (= 40px). z-index 1 keeps it
+   behind the rod so the rod passes visibly through the opening. */
+
+.ms-collar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  margin-left: -13px;
+  margin-top: -13px;
+  border-radius: 50%;
+  z-index: 1;
+  background: radial-gradient(circle at 38% 30%,
+    #d8d8d8  0%,
+    #b0b0b0 32%,
+    #686868 68%,
+    #343434 100%
+  );
   box-shadow:
-    inset 0 3px 7px rgba(0,0,0,0.7),
-    inset 0 -1px 2px rgba(255,255,255,0.06),
-    0 3px 8px rgba(0,0,0,0.5),
-    0 0 0 2px var(--accent-border);
-}
-
-/* ─── Housing (the dark metal block) ────────────────── */
-
-.ms-housing {
+    0 3px 6px rgba(0, 0, 0, 0.55),
+    0 0 0 2px #252525,
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 56px;
-  border-radius: 6px;
-
-  /* Dark brushed-metal look */
-  background: linear-gradient(
-    160deg,
-    #3e3e3e 0%,
-    #282828 45%,
-    #1c1c1c 100%
-  );
-  border-top: 1px solid rgba(255,255,255,0.10);
-  border-bottom: 1px solid rgba(0,0,0,0.6);
-  border-left: 1px solid rgba(255,255,255,0.06);
-  border-right: 1px solid rgba(0,0,0,0.5);
-
-  box-shadow:
-    inset 0 3px 7px rgba(0,0,0,0.7),
-    inset 0 -1px 2px rgba(255,255,255,0.05),
-    0 3px 8px rgba(0,0,0,0.5),
-    0 1px 2px rgba(0,0,0,0.7);
 }
 
-/* ─── Slot (recessed channel inside housing) ─────────── */
-
-.ms-slot {
-  position: relative;
-  width: 18px;
-  height: 42px;
-  border-radius: 3px;
-  background: rgba(0,0,0,0.55);
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
-}
-
-/* ─── Lever (chrome rod that slides in the slot) ─────── */
-
-.ms-lever {
+.ms-collar-ring {
   position: absolute;
-  left: 0;
-  width: 18px;
-  height: 22px;
-  border-radius: 3px;
-  transition: top 0.14s cubic-bezier(0.4, 0, 0.2, 1);
+  inset: 3px;
+  border-radius: 50%;
+  border: 0.7px solid rgba(0, 0, 0, 0.20);
+  pointer-events: none;
+}
 
-  /* Chrome / brushed-steel gradient — vertical highlight stripe */
-  background: linear-gradient(
-    to right,
-    #888  0%,
-    #ccc  18%,
-    #ebebeb 35%,
-    #f4f4f4 50%,
-    #d8d8d8 65%,
-    #b0b0b0 82%,
-    #787878 100%
-  );
-
-  border-top: 1px solid rgba(255,255,255,0.7);
-  border-bottom: 1px solid rgba(0,0,0,0.35);
-  border-left: 1px solid rgba(255,255,255,0.3);
-  border-right: 1px solid rgba(0,0,0,0.25);
-
+.ms-socket {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #161616;
   box-shadow:
-    0 2px 5px rgba(0,0,0,0.5),
-    inset 0 1px 0 rgba(255,255,255,0.6);
+    inset 0 1px 3px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
 }
 
-/* OFF → lever at bottom of slot */
-.ms-lever {
-  top: 20px;
-}
-
-/* ON → lever at top of slot */
-.ms-switch--on .ms-lever {
-  top: 0;
-}
-
-/* ─── State label ────────────────────────────────────── */
+/* ─── State label  ────────────────────────────────────────────────────────────
+   Matches .rk-value exactly: mono 11px, accent color when active, margin-top
+   2px so the effective gap from the visual is 6px (= 4px flex gap + 2px). */
 
 .ms-state-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
   font-family: var(--mono);
+  font-size: 11px;
   color: var(--text);
+  line-height: 1;
+  margin-top: 2px;
   transition: color 0.14s;
 }
 
 .ms-switch--on .ms-state-label {
   color: var(--accent);
+}
+
+/* ─── Parameter label ─────────────────────────────────────────────────────── */
+/* Matches .rk-label exactly. */
+
+.ms-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1;
 }

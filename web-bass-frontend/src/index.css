@@ -1,15 +1,33 @@
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
+  /* ── Bass instrument palette ───────────────────────────────────────────────
+     All SVG fill/stroke values reference these variables so repainting the
+     bass only requires changing values here.                                 */
+  --bass-body:          #a22329;   /* crimson body */
+  --bass-guard:         #fffefa;   /* pick guard cream */
+  --bass-neck:          #fab55d;   /* maple fretboard + headstock */
+  --bass-fret:          #957154;   /* fret wires */
+  --bass-string:        #4d4d4d;   /* strings */
+  --bass-nut:           #f4e5d1;   /* nut / saddle strip */
+  --bass-nut-plate:     #d1d1d1;   /* nut plate */
+  --bass-nut-cap:       #ababab;   /* nut cap */
+  --bass-pickup:        #000000;   /* pickups */
+  --bass-tuner-btn:     #e1e1e2;   /* tuner button caps */
+  --bass-tuner-pin:     #434242;   /* tuner pin shafts */
+  --bass-tuner-housing: #e2e2e3;   /* tuner housing outer */
+  --bass-tuner-inner:   #3f3637;   /* tuner housing inner */
+
+  /* ── UI semantic tokens ─────────────────────────────────────────────────── */
+  --text:         #606060;
+  --text-h:       #111111;
+  --bg:           #fafafa;
+  --border:       #dedede;
+  --code-bg:      #f2f2f2;
+  --accent:       var(--bass-body);
+  --accent-bg:    rgba(162, 35, 41, 0.08);
+  --accent-border: rgba(162, 35, 41, 0.35);
+  --social-bg:    rgba(242, 242, 242, 0.6);
   --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+    rgba(0, 0, 0, 0.10) 0 10px 15px -3px, rgba(0, 0, 0, 0.06) 0 4px 6px -2px;
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -32,17 +50,17 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
+    --text:         #999999;
+    --text-h:       #eeeeee;
+    --bg:           #181818;
+    --border:       #303030;
+    --code-bg:      #212121;
+    --accent:       #e04555;
+    --accent-bg:    rgba(224, 69, 85, 0.12);
+    --accent-border: rgba(224, 69, 85, 0.4);
+    --social-bg:    rgba(30, 30, 30, 0.6);
     --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+      rgba(0, 0, 0, 0.45) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
   }
 
   #social .button-icon {

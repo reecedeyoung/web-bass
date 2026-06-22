@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pearloid Texture Preview</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background-color: #e0ddd8;
+      background-repeat: repeat;
+    }
+
+    /* ── Control panel ── */
+    #ui {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(26, 20, 23, 0.90);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #f5eeee;
+      padding: 20px 22px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      min-width: 210px;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 13px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      user-select: none;
+    }
+
+    #ui h2 {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #a89099;
+      margin: 0;
+    }
+
+    #status {
+      font-size: 11px;
+      color: #a89099;
+      font-family: 'Courier New', monospace;
+      min-height: 1em;
+    }
+
+    .divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.07);
+      margin: 0 -22px;
+      width: calc(100% + 44px);
+    }
+
+    .btn-row { display: flex; gap: 8px; }
+
+    button {
+      flex: 1;
+      padding: 8px 10px;
+      cursor: pointer;
+      border: 1px solid rgba(162, 35, 41, 0.45);
+      border-radius: 6px;
+      background: rgba(162, 35, 41, 0.16);
+      color: #f5eeee;
+      font-size: 12px;
+      font-weight: 500;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    button:hover  { background: rgba(162, 35, 41, 0.34); border-color: rgba(162, 35, 41, 0.7); }
+    button:active { background: rgba(162, 35, 41, 0.50); }
+
+    .param-label {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      color: #c8b8be;
+      font-size: 12px;
+    }
+    .param-label .row {
+      display: flex;
+      justify-content: space-between;
+    }
+    .param-label .val {
+      color: #f5eeee;
+      font-family: 'Courier New', monospace;
+    }
+
+    input[type=range] {
+      width: 100%;
+      height: 4px;
+      accent-color: #a22329;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div id="ui">
+  <h2>Pearloid Texture</h2>
+  <div id="status">Initializing…</div>
+
+  <div class="divider"></div>
+
+  <div class="param-label">
+    <div class="row"><span>Cell count</span><span class="val" id="cellVal">220</span></div>
+    <input type="range" id="cellCount" min="60" max="420" value="220"
+           oninput="document.getElementById('cellVal').textContent = this.value; scheduleRegen()">
+  </div>
+
+  <div class="param-label">
+    <div class="row"><span>Tile size</span><span class="val" id="sizeVal">512 px</span></div>
+    <input type="range" id="tileSize" min="256" max="1024" step="256" value="512"
+           oninput="document.getElementById('sizeVal').textContent = this.value + ' px'; scheduleRegen()">
+  </div>
+
+  <div class="param-label">
+    <div class="row"><span>Grid (stochastic)</span><span class="val" id="gridVal">4 × 4</span></div>
+    <input type="range" id="gridN" min="2" max="8" step="1" value="4"
+           oninput="document.getElementById('gridVal').textContent = this.value + ' × ' + this.value; scheduleRegen()">
+  </div>
+
+  <div class="param-label">
+    <div class="row"><span>Iridescence</span><span class="val" id="iridVal">40°</span></div>
+    <input type="range" id="iridRange" min="0" max="150" value="40"
+           oninput="document.getElementById('iridVal').textContent = this.value + '°'; scheduleRegen()">
+  </div>
+
+  <div class="param-label">
+    <div class="row"><span>Border width</span><span class="val" id="borderVal">2.5</span></div>
+    <input type="range" id="borderWidth" min="0.5" max="6" step="0.5" value="2.5"
+           oninput="document.getElementById('borderVal').textContent = this.value; scheduleRegen()">
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="btn-row">
+    <button onclick="regenerate(true)">New Seed</button>
+    <button onclick="download()">Save PNG</button>
+  </div>
+</div>
+
+<!-- Off-screen canvases -->
+<canvas id="base-canvas" style="display:none"></canvas>
+<canvas id="comp-canvas" style="display:none"></canvas>
+
+<script>
+// ── Seeded PRNG: Mulberry32 ─────────────────────────────────────────────────
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// ── Smoothstep ──────────────────────────────────────────────────────────────
+function smoothstep(e0, e1, x) {
+  const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
+  return t * t * (3 - 2 * t);
+}
+
+// ── Hash noise for per-pixel grain (no PRNG state needed) ───────────────────
+function hash2(x, y) {
+  let h = (Math.imul(x, 374761393) ^ Math.imul(y, 668265263)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177) | 0;
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
+// ── Integer hash for per-tile rotation selection ─────────────────────────────
+function hashInt(n) {
+  n = ((n >>> 16) ^ n) * 0x45d9f3b | 0;
+  n = ((n >>> 16) ^ n) * 0x45d9f3b | 0;
+  return ((n >>> 16) ^ n) >>> 0;
+}
+
+// ── Pearloid base tile generator ─────────────────────────────────────────────
+// Draws to #base-canvas and returns it. Lighting is kept rotationally neutral
+// (low specular, no fixed diffuse direction) so 90° rotations look consistent.
+function generatePearloid({ W, H, N, seed, iridRange, borderPx }) {
+  const rand = mulberry32(seed);
+
+  // Light direction: nearly perpendicular to surface, weak directional tilt.
+  // Keeping this subtle so rotated tiles don't show obvious shading differences.
+  const rawL  = [0.18, -0.12, 0.98];
+  const lLen  = Math.hypot(...rawL);
+  const [lx, ly, lz] = rawL.map(v => v / lLen);
+
+  // ── Generate Voronoi seed points ─────────────────────────────────────────
+  const seeds = [];
+  for (let i = 0; i < N; i++) {
+    const theta = rand() * Math.PI * 2;
+    const phi   = Math.pow(rand(), 0.5) * Math.PI * 0.55;
+    seeds.push({
+      x:      rand() * W,
+      y:      rand() * H,
+      nx:     Math.sin(phi) * Math.cos(theta),
+      ny:     Math.sin(phi) * Math.sin(theta),
+      nz:     Math.cos(phi),
+      weight: 0.52 + rand() * 0.96,
+      bright: 0.58 + rand() * 0.42,
+      hue:    (rand() - 0.5) * iridRange,
+    });
+  }
+
+  // ── Spatial hash grid ────────────────────────────────────────────────────
+  const GDIV = 16;
+  const cw = W / GDIV, ch = H / GDIV;
+  const grid = Array.from({ length: GDIV * GDIV }, () => []);
+  for (const s of seeds) {
+    const gi = Math.min(GDIV - 1, (s.x / cw) | 0);
+    const gj = Math.min(GDIV - 1, (s.y / ch) | 0);
+    grid[gj * GDIV + gi].push(s);
+  }
+
+  function nearest2(px, py) {
+    let wd1sq = 1e18, wd2sq = 1e18, best = null;
+    const gi0 = Math.min(GDIV - 1, (px / cw) | 0);
+    const gj0 = Math.min(GDIV - 1, (py / ch) | 0);
+    const R = 3;
+    for (let dj = -R; dj <= R; dj++) {
+      for (let di = -R; di <= R; di++) {
+        const gi = ((gi0 + di) % GDIV + GDIV) % GDIV;
+        const gj = ((gj0 + dj) % GDIV + GDIV) % GDIV;
+        for (const s of grid[gj * GDIV + gi]) {
+          let dx = px - s.x, dy = py - s.y;
+          if (dx >  W * 0.5) dx -= W; else if (dx < -W * 0.5) dx += W;
+          if (dy >  H * 0.5) dy -= H; else if (dy < -H * 0.5) dy += H;
+          const wdsq = (dx * dx + dy * dy) / (s.weight * s.weight);
+          if (wdsq < wd1sq) { wd2sq = wd1sq; wd1sq = wdsq; best = s; }
+          else if (wdsq < wd2sq) { wd2sq = wdsq; }
+        }
+      }
+    }
+    return { d1: Math.sqrt(wd1sq), d2: Math.sqrt(wd2sq), s: best };
+  }
+
+  // ── Raster pass ──────────────────────────────────────────────────────────
+  const canvas = document.getElementById('base-canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const img  = ctx.createImageData(W, H);
+  const data = img.data;
+
+  for (let py = 0; py < H; py++) {
+    for (let px = 0; px < W; px++) {
+      const { d1, d2, s } = nearest2(px, py);
+
+      const border = smoothstep(0, borderPx, d2 - d1);
+
+      const dotNL   = s.nx * lx + s.ny * ly + s.nz * lz;
+      const diffuse = Math.max(0, dotNL);
+      const rz       = 2 * dotNL * s.nz - lz;
+      // Specular kept low so fixed light direction doesn't dominate across rotations
+      const specular = Math.pow(Math.max(0, rz), 22);
+
+      const cellBase = 0.78 + s.bright * 0.16;        // per-cell base reflectivity
+      let lum = cellBase + diffuse * 0.06 + specular * 0.14;
+      lum = Math.min(1.0, lum);
+      lum *= 0.83 + 0.17 * border;
+
+      lum += (hash2(px, py) - 0.5) * 0.020;
+      lum  = Math.min(1.0, Math.max(0.0, lum));
+
+      const h  = s.hue * (Math.PI / 180);
+      const rM = 1.0 + Math.sin(h)                  * 0.048;
+      const gM = 1.0 + Math.sin(h + Math.PI * 0.75) * 0.036;
+      const bM = 1.0 + Math.cos(h)                  * 0.068;
+
+      const idx = (py * W + px) * 4;
+      data[idx]     = Math.min(255, lum * rM * 255.8 + 0.2);
+      data[idx + 1] = Math.min(255, lum * gM * 254.2);
+      data[idx + 2] = Math.min(255, lum * bM * 252.8);
+      data[idx + 3] = 255;
+    }
+  }
+
+  ctx.putImageData(img, 0, 0);
+  return canvas;
+}
+
+// ── Stochastic composite ──────────────────────────────────────────────────────
+// Stamps the base tile into an N×N grid with a per-slot rotation chosen from
+// {0°, 90°, 180°, 270°} plus optional horizontal mirror (8 orientations total).
+// Because the base tile is toroidally seamless, any 90° rotation of it is also
+// seamless. Adjacent rotated copies share edges that all originate from the
+// same wrapped tile, so they tile together without visible seams.
+function makeComposite(baseTile, gridN, compositeSeed) {
+  const sz = baseTile.width;
+  const W  = sz * gridN;
+  const canvas = document.getElementById('comp-canvas');
+  canvas.width  = W;
+  canvas.height = W;
+  const ctx = canvas.getContext('2d');
+
+  for (let gj = 0; gj < gridN; gj++) {
+    for (let gi = 0; gi < gridN; gi++) {
+      const h    = hashInt(gi * 1999 + gj * 7919 + (compositeSeed & 0xffff) * 13);
+      const rot  = (h & 3) * (Math.PI / 2);   // 0, 90, 180, 270 degrees
+      const flip = (h >> 2) & 1;               // 0 or 1 — horizontal mirror
+
+      ctx.save();
+      ctx.translate(gi * sz + sz * 0.5, gj * sz + sz * 0.5);
+      ctx.rotate(rot);
+      if (flip) ctx.scale(-1, 1);
+      ctx.drawImage(baseTile, -sz * 0.5, -sz * 0.5);
+      ctx.restore();
+    }
+  }
+
+  return canvas;
+}
+
+// ── UI ──────────────────────────────────────────────────────────────────────
+let currentSeed    = 0;
+let currentDataURL = '';
+let regenTimer     = null;
+
+function applyBackground(compositeSz) {
+  document.body.style.backgroundImage = `url(${currentDataURL})`;
+  document.body.style.backgroundSize  = `${compositeSz}px ${compositeSz}px`;
+}
+
+function scheduleRegen() {
+  clearTimeout(regenTimer);
+  regenTimer = setTimeout(() => regenerate(false), 80);
+}
+
+function regenerate(newSeed = true) {
+  if (newSeed) currentSeed = (Math.random() * 0xffffffff) | 0;
+  const N         = +document.getElementById('cellCount').value;
+  const sz        = +document.getElementById('tileSize').value;
+  const gridN     = +document.getElementById('gridN').value;
+  const iridRange = +document.getElementById('iridRange').value;
+  const borderPx  = +document.getElementById('borderWidth').value;
+
+  document.getElementById('status').textContent = 'Generating…';
+
+  setTimeout(() => {
+    const t0       = performance.now();
+    const baseTile = generatePearloid({ W: sz, H: sz, N, seed: currentSeed, iridRange, borderPx });
+    const composite = makeComposite(baseTile, gridN, currentSeed);
+    currentDataURL  = composite.toDataURL('image/png');
+    const ms = Math.round(performance.now() - t0);
+    applyBackground(sz * gridN);
+    document.getElementById('status').textContent =
+      `0x${(currentSeed >>> 0).toString(16).padStart(8, '0')} · ${ms} ms`;
+  }, 16);
+}
+
+function download() {
+  const a = document.createElement('a');
+  a.download = `pearloid-${(currentSeed >>> 0).toString(16)}.png`;
+  a.href = currentDataURL;
+  a.click();
+}
+
+regenerate(true);
+</script>
+</body>
+</html>

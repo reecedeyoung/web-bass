@@ -68,15 +68,6 @@
   flex-wrap: wrap;
 }
 
-/* ── Switch as a knob-row peer ── */
-
-.sv-switch-param {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-bottom: 4px; /* optical alignment with knob labels */
-}
-
 /* ── Footnote ── */
 
 .sv-envelope-note {
