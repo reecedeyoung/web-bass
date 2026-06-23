@@ -15,13 +15,13 @@ variable "aws_region" {
 
 variable "domain_name" {
   type    = string
-  default = "staging.k-strong-bass.com"
+  default = "staging.web-bass.com"
 }
 
 variable "callback_urls" {
   type = list(string)
   default = [
-    "https://staging.k-strong-bass.com",
+    "https://staging.web-bass.com",
     "http://localhost:5173", # Vite dev server
   ]
 }
@@ -29,7 +29,17 @@ variable "callback_urls" {
 variable "logout_urls" {
   type = list(string)
   default = [
-    "https://staging.k-strong-bass.com",
+    "https://staging.web-bass.com",
     "http://localhost:5173",
   ]
+}
+
+variable "github_subject_claim" {
+  type        = string
+  description = "OIDC sub claim — set to repo:ORG/REPO:environment:staging after creating the GitHub environment"
+}
+
+variable "cloudflare_zone_id" {
+  type        = string
+  description = "Cloudflare zone ID for web-bass.com — Overview page right sidebar"
 }

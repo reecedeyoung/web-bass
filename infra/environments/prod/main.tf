@@ -5,6 +5,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 4.0"
+    }
   }
 
   backend "s3" {
@@ -44,6 +48,9 @@ provider "aws" {
   }
 }
 
+# API token read from CLOUDFLARE_API_TOKEN environment variable
+provider "cloudflare" {}
+
 # ── Networking ─────────────────────────────────────────────────────────────
 
 module "networking" {
@@ -71,13 +78,7 @@ module "dynamodb" {
   authenticated_role_id = module.cognito.authenticated_role_id
 }
 
-# ── DNS + ACM cert ─────────────────────────────────────────────────────────
-# Creates the k-strong-bass.com hosted zone and a cert covering both the
-# apex domain and www.
-#
-# After first apply, run:
-#   terraform output name_servers
-# Then update your registrar's nameservers to these four values.
+# ── ACM cert — validated via Cloudflare DNS ────────────────────────────────
 
 module "dns" {
   source      = "../../modules/dns"
@@ -85,12 +86,13 @@ module "dns" {
   environment = var.environment
   domain_name = var.domain_name
 
-  # Cert covers both apex and www so CloudFront can serve either
   subject_alternative_names = ["www.${var.domain_name}"]
+  cloudflare_zone_id        = var.cloudflare_zone_id
 
   providers = {
     aws           = aws
     aws.us_east_1 = aws.us_east_1
+    cloudflare    = cloudflare
   }
 }
 
@@ -104,71 +106,34 @@ module "cloudfront" {
   acm_certificate_arn = module.dns.acm_certificate_arn
 }
 
-# ── Route53 alias records → CloudFront ────────────────────────────────────
-# Apex domain
+# ── CI/CD deploy role ──────────────────────────────────────────────────────
 
-resource "aws_route53_record" "cloudfront_a" {
-  zone_id = module.dns.zone_id
-  name    = var.domain_name
-  type    = "A"
-
-  alias {
-    name                   = module.cloudfront.cloudfront_domain_name
-    zone_id                = module.cloudfront.cloudfront_hosted_zone_id
-    evaluate_target_health = false
-  }
+module "cicd_role" {
+  source                     = "../../modules/cicd-role"
+  project                    = var.project
+  environment                = var.environment
+  s3_bucket_arn              = module.cloudfront.s3_bucket_arn
+  cloudfront_distribution_id = module.cloudfront.cloudfront_distribution_id
+  github_subject_claim       = var.github_subject_claim
 }
 
-resource "aws_route53_record" "cloudfront_aaaa" {
-  zone_id = module.dns.zone_id
-  name    = var.domain_name
-  type    = "AAAA"
+# ── Cloudflare DNS records → CloudFront ───────────────────────────────────
+# proxied = false — CloudFront handles SSL; Cloudflare proxy would conflict.
 
-  alias {
-    name                   = module.cloudfront.cloudfront_domain_name
-    zone_id                = module.cloudfront.cloudfront_hosted_zone_id
-    evaluate_target_health = false
-  }
+resource "cloudflare_record" "apex" {
+  zone_id = var.cloudflare_zone_id
+  name    = "@"
+  content = module.cloudfront.cloudfront_domain_name
+  type    = "CNAME"
+  ttl     = 1
+  proxied = false
 }
 
-# www redirect — same CloudFront distribution handles both aliases
-resource "aws_route53_record" "www_a" {
-  zone_id = module.dns.zone_id
-  name    = "www.${var.domain_name}"
-  type    = "A"
-
-  alias {
-    name                   = module.cloudfront.cloudfront_domain_name
-    zone_id                = module.cloudfront.cloudfront_hosted_zone_id
-    evaluate_target_health = false
-  }
+resource "cloudflare_record" "www" {
+  zone_id = var.cloudflare_zone_id
+  name    = "www"
+  content = module.cloudfront.cloudfront_domain_name
+  type    = "CNAME"
+  ttl     = 1
+  proxied = false
 }
-
-resource "aws_route53_record" "www_aaaa" {
-  zone_id = module.dns.zone_id
-  name    = "www.${var.domain_name}"
-  type    = "AAAA"
-
-  alias {
-    name                   = module.cloudfront.cloudfront_domain_name
-    zone_id                = module.cloudfront.cloudfront_hosted_zone_id
-    evaluate_target_health = false
-  }
-}
-
-# ── NS delegation for staging subdomain ───────────────────────────────────
-# After deploying staging, paste its name_servers output here and apply.
-# This delegates staging.k-strong-bass.com DNS to the dev-bass account.
-
-# resource "aws_route53_record" "staging_ns" {
-#   zone_id = module.dns.zone_id
-#   name    = "staging.${var.domain_name}"
-#   type    = "NS"
-#   ttl     = 300
-#   records = [
-#     "ns-xxxx.awsdns-xx.com.",
-#     "ns-xxxx.awsdns-xx.net.",
-#     "ns-xxxx.awsdns-xx.co.uk.",
-#     "ns-xxxx.awsdns-xx.org.",
-#   ]
-# }

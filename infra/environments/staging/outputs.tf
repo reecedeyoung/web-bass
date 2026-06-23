@@ -15,15 +15,6 @@ output "cloudfront_url" {
   value = "https://${var.domain_name}"
 }
 
-# ── DNS handoff ────────────────────────────────────────────────────────────
-# Add these as NS records under staging.k-strong-bass.com in the prod-bass
-# Route53 zone to delegate the subdomain to this account.
-
-output "name_servers" {
-  description = "Add as NS delegation records in the prod-bass k-strong-bass.com zone"
-  value       = module.dns.name_servers
-}
-
 # ── App config (use in VITE_ env vars or a runtime config file) ───────────
 
 output "cognito_user_pool_id" {
@@ -48,6 +39,13 @@ output "dynamodb_presets_table" {
 
 output "dynamodb_keyboard_mappings_table" {
   value = module.dynamodb.keyboard_mappings_table_name
+}
+
+# ── CI/CD ──────────────────────────────────────────────────────────────────
+
+output "deploy_role_arn" {
+  description = "Set as AWS_ROLE_ARN secret in the GitHub 'staging' environment"
+  value       = module.cicd_role.role_arn
 }
 
 # ── Future API ─────────────────────────────────────────────────────────────

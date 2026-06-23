@@ -14,14 +14,6 @@ output "cloudfront_url" {
   value = "https://${var.domain_name}"
 }
 
-# ── DNS handoff ────────────────────────────────────────────────────────────
-# Set these as your registrar's nameservers for k-strong-bass.com.
-
-output "name_servers" {
-  description = "Set these as nameservers at your domain registrar"
-  value       = module.dns.name_servers
-}
-
 # ── App config ─────────────────────────────────────────────────────────────
 
 output "cognito_user_pool_id" {
@@ -46,6 +38,13 @@ output "dynamodb_presets_table" {
 
 output "dynamodb_keyboard_mappings_table" {
   value = module.dynamodb.keyboard_mappings_table_name
+}
+
+# ── CI/CD ──────────────────────────────────────────────────────────────────
+
+output "deploy_role_arn" {
+  description = "Set as AWS_ROLE_ARN secret in the GitHub 'prod' environment"
+  value       = module.cicd_role.role_arn
 }
 
 # ── Future API ─────────────────────────────────────────────────────────────
