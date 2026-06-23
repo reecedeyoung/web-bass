@@ -33,7 +33,7 @@ function portamentoCoeff(ms: number, sampleRate: number): number {
 }
 
 /** Fixed tanh soft-clip curve (k=3). Gentle at low input, saturates near ±1. */
-function makeSoftClipCurve(): Float32Array {
+function makeSoftClipCurve(): Float32Array<ArrayBuffer> {
   const n = 256
   const curve = new Float32Array(n)
   const k = Math.tanh(3)

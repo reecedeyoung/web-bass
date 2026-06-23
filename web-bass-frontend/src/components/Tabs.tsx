@@ -16,7 +16,7 @@ const FULL_WIDTH_TABS = new Set<Tab>(['Presets', 'Settings', 'Control Mapping'])
 function Tabs() {
   const [activeTab, setActiveTab] = useState<Tab>('Bass')
   const [infoOpen, setInfoOpen]   = useState(false)
-  const hideTimer = useRef<ReturnType<typeof setTimeout>>()
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const showInfo = () => {
     clearTimeout(hideTimer.current)

@@ -31,6 +31,7 @@ export class MidiInputSource implements InputSource {
   }
 
   private readonly onMessage = (e: MIDIMessageEvent): void => {
+    if (!e.data) return
     const [status, note, velocity] = e.data
     const msgType = status & STATUS_MASK
     const channel = (status & CHANNEL_MASK) + 1
@@ -47,7 +48,7 @@ export class MidiInputSource implements InputSource {
   }
 
   private readonly onStateChange = (e: MIDIConnectionEvent): void => {
-    if (e.port.type !== 'input') return
+    if (!e.port || e.port.type !== 'input') return
     const input = e.port as MIDIInput
     input.onmidimessage = e.port.state === 'connected' ? this.onMessage : null
   }

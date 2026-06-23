@@ -1,5 +1,4 @@
 import type { InputSource } from './InputSource'
-import type { NoteEvent } from './types'
 import { noteEventBus } from './NoteEventBus'
 import type { KeyMapping } from '../mappings/types'
 import defaultLayout from '../mappings/default-bass-layout.json'
