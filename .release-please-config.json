@@ -1,0 +1,9 @@
+{
+  "packages": {
+    "web-bass-frontend": {
+      "release-type": "node",
+      "package-name": "web-bass-frontend",
+      "changelog-path": "CHANGELOG.md"
+    }
+  }
+}

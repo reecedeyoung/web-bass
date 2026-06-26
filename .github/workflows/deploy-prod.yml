@@ -1,6 +1,10 @@
 name: Deploy — Production
 
 on:
+  # Fires automatically when release-please merges a Release PR and publishes a tag.
+  release:
+    types: [published]
+  # Manual fallback — still available from the Actions tab.
   workflow_dispatch:
     inputs:
       confirm:
@@ -15,6 +19,8 @@ jobs:
   guard:
     name: Confirm intent
     runs-on: ubuntu-latest
+    # Only enforce the confirmation check for manual dispatches.
+    if: github.event_name == 'workflow_dispatch'
     steps:
       - name: Check confirmation
         if: ${{ github.event.inputs.confirm != 'deploy' }}
@@ -24,7 +30,8 @@ jobs:
 
   deploy:
     name: Build & deploy to production
-    needs: guard
+    needs: [guard]
+    if: always() && (needs.guard.result == 'success' || needs.guard.result == 'skipped')
     runs-on: ubuntu-latest
     environment: prod  # must match github_subject_claim in terraform.tfvars
 
@@ -49,6 +56,7 @@ jobs:
           VITE_COGNITO_CLIENT_ID: ${{ secrets.COGNITO_USER_POOL_CLIENT_ID }}
           VITE_COGNITO_IDENTITY_POOL_ID: ${{ secrets.COGNITO_IDENTITY_POOL_ID }}
           VITE_AWS_REGION: us-east-1
+          VITE_APP_VERSION: ${{ github.ref_name }}
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4

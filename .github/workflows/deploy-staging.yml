@@ -39,6 +39,7 @@ jobs:
           VITE_COGNITO_CLIENT_ID: ${{ secrets.COGNITO_USER_POOL_CLIENT_ID }}
           VITE_COGNITO_IDENTITY_POOL_ID: ${{ secrets.COGNITO_IDENTITY_POOL_ID }}
           VITE_AWS_REGION: us-east-1
+          VITE_APP_VERSION: ${{ github.sha }}
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
