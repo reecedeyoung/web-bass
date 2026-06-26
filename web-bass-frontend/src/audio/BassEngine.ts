@@ -117,6 +117,8 @@ export class BassEngine {
   private params: EngineParams = { ...DEFAULT_ENGINE_PARAMS }
   // Ordered by press time: last element = most recently pressed note still held.
   private readonly heldNotes = new Map<number, number[]>()
+  // Minimum valid MIDI note per channel — updated when keyboard mapping changes.
+  private channelMinNote = new Map<number, number>([[1, 28], [2, 33], [3, 38], [4, 43]])
 
   constructor() {
     this.ctx = new AudioContext()
@@ -231,16 +233,20 @@ export class BassEngine {
     }
   }
 
+  setChannelMinNotes(notes: Map<number, number>): void {
+    this.channelMinNote = notes
+  }
+
   private readonly handleNote = (event: NoteEvent): void => {
     if (this.ctx.state === 'suspended') this.ctx.resume()
 
     const voice = this.voices.get(event.channel)
     if (!voice) return
 
-    // Reject notes outside the physical fret range for this string voice.
-    const stringDef = STRINGS.find(s => s.channel === event.channel)
-    if (stringDef) {
-      const fret = event.note - stringDef.openNote
+    // Reject notes outside the playable range for this string voice.
+    const minNote = this.channelMinNote.get(event.channel)
+    if (minNote !== undefined) {
+      const fret = event.note - minNote
       if (fret < 0 || fret > MAX_FRETS) return
     }
 

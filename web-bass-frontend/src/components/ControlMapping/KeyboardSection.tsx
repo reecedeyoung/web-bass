@@ -14,8 +14,17 @@ import {
 const MIN_OPEN_NOTE = OPEN_NOTE_OPTIONS[0].value
 const MAX_OPEN_NOTE = OPEN_NOTE_OPTIONS[OPEN_NOTE_OPTIONS.length - 1].value
 
+function minNotesFromMapping(m: KeyMapping): Map<number, number> {
+  const result = new Map<number, number>()
+  for (const binding of Object.values(m.mappings)) {
+    const cur = result.get(binding.channel)
+    if (cur === undefined || binding.note < cur) result.set(binding.channel, binding.note)
+  }
+  return result
+}
+
 export default function KeyboardSection() {
-  const { keyboard } = useAudio()
+  const { keyboard, engine } = useAudio()
   const [mapping,      setMapping]      = useState<KeyMapping>(defaultLayout as KeyMapping)
   const [advanced,     setAdvanced]     = useState(false)
   const [uploadError,  setUploadError]  = useState<string | null>(null)
@@ -26,7 +35,8 @@ export default function KeyboardSection() {
   const applyMapping = useCallback((m: KeyMapping) => {
     setMapping(m)
     keyboard?.setMapping(m)
-  }, [keyboard])
+    engine?.setChannelMinNotes(minNotesFromMapping(m))
+  }, [keyboard, engine])
 
   const handleTuneStep = (stringIdx: number, delta: number) => {
     const next = Math.max(MIN_OPEN_NOTE, Math.min(MAX_OPEN_NOTE, openNotes[stringIdx] + delta))
