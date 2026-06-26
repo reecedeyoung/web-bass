@@ -102,6 +102,10 @@ class BassStringProcessor extends AudioWorkletProcessor {
   }
 
   pluck(frequency, velocity, attack) {
+    const prevFreq  = this.currentFreq
+    const prevDelay = this.currentDelay
+    const wasActive = this.active
+
     const N     = Math.max(2, Math.round(sampleRate / frequency))
     const buf   = this.buf
     const maxN  = this.maxN
@@ -155,6 +159,14 @@ class BassStringProcessor extends AudioWorkletProcessor {
     this.currentFreq  = frequency
     this.targetFreq   = frequency
     this.currentDelay = N
+
+    // When portamento is active and the string was already ringing, preserve the
+    // previous frequency as the slide origin so pitch glides to the new note.
+    if (this.portamentoActive && wasActive) {
+      this.currentFreq  = prevFreq
+      this.currentDelay = prevDelay
+      this.readPtr      = (this.writePtr + maxN * 2 - prevDelay) % maxN
+    }
 
     this.outputGain = 0.0
     this.onsetStep  = 1.0 / (0.001 * sampleRate)
