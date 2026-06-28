@@ -1,13 +1,12 @@
 import './App.css'
+import Header from './components/Header'
 import Tabs from './components/Tabs'
 import { AudioProvider } from './context/AudioContext'
 
 function App() {
   return (
     <AudioProvider>
-      <section id="title">
-        <h1>Web Bass</h1>
-      </section>
+      <Header />
       <section id="bass">
         <Tabs />
       </section>
