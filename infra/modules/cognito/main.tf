@@ -49,6 +49,101 @@ resource "aws_cognito_user_pool" "main" {
   }
 }
 
+# ── Social identity providers (count-gated — enabled when credentials set) ─
+
+resource "aws_cognito_identity_provider" "google" {
+  count         = var.google_client_id != "" ? 1 : 0
+  user_pool_id  = aws_cognito_user_pool.main.id
+  provider_name = "Google"
+  provider_type = "Google"
+
+  provider_details = {
+    client_id                     = var.google_client_id
+    client_secret                 = var.google_client_secret
+    authorize_scopes              = "email profile openid"
+    attributes_url_add_identifier = "false"
+  }
+
+  attribute_mapping = {
+    email    = "email"
+    username = "sub"
+    name     = "name"
+    picture  = "picture"
+  }
+}
+
+resource "aws_cognito_identity_provider" "facebook" {
+  count         = var.facebook_app_id != "" ? 1 : 0
+  user_pool_id  = aws_cognito_user_pool.main.id
+  provider_name = "Facebook"
+  provider_type = "Facebook"
+
+  provider_details = {
+    client_id        = var.facebook_app_id
+    client_secret    = var.facebook_app_secret
+    authorize_scopes = "email public_profile"
+    api_version      = "v17.0"
+  }
+
+  attribute_mapping = {
+    email    = "email"
+    username = "id"
+    name     = "name"
+  }
+}
+
+resource "aws_cognito_identity_provider" "apple" {
+  count         = var.apple_service_id != "" ? 1 : 0
+  user_pool_id  = aws_cognito_user_pool.main.id
+  provider_name = "SignInWithApple"
+  provider_type = "SignInWithApple"
+
+  provider_details = {
+    client_id        = var.apple_service_id
+    team_id          = var.apple_team_id
+    key_id           = var.apple_key_id
+    private_key      = var.apple_private_key
+    authorize_scopes = "email name"
+  }
+
+  attribute_mapping = {
+    email    = "email"
+    username = "sub"
+    name     = "name"
+  }
+}
+
+resource "aws_cognito_identity_provider" "microsoft" {
+  count         = var.microsoft_client_id != "" ? 1 : 0
+  user_pool_id  = aws_cognito_user_pool.main.id
+  provider_name = "Microsoft"
+  provider_type = "OIDC"
+
+  provider_details = {
+    client_id                 = var.microsoft_client_id
+    client_secret             = var.microsoft_client_secret
+    attributes_request_method = "GET"
+    oidc_issuer               = "https://login.microsoftonline.com/common/v2.0"
+    authorize_scopes          = "email profile openid"
+  }
+
+  attribute_mapping = {
+    email    = "email"
+    username = "sub"
+    name     = "name"
+  }
+}
+
+locals {
+  enabled_providers = compact([
+    "COGNITO",
+    var.google_client_id    != "" ? "Google"          : "",
+    var.facebook_app_id     != "" ? "Facebook"        : "",
+    var.apple_service_id    != "" ? "SignInWithApple"  : "",
+    var.microsoft_client_id != "" ? "Microsoft"       : "",
+  ])
+}
+
 # ── User Pool Client (SPA — no secret) ────────────────────────────────────
 
 resource "aws_cognito_user_pool_client" "web" {
@@ -70,7 +165,7 @@ resource "aws_cognito_user_pool_client" "web" {
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_scopes                 = ["email", "openid", "profile"]
 
-  supported_identity_providers = ["COGNITO"]
+  supported_identity_providers = local.enabled_providers
 
   token_validity_units {
     access_token  = "hours"
@@ -83,6 +178,13 @@ resource "aws_cognito_user_pool_client" "web" {
   refresh_token_validity = 30
 
   prevent_user_existence_errors = "ENABLED"
+
+  depends_on = [
+    aws_cognito_identity_provider.google,
+    aws_cognito_identity_provider.facebook,
+    aws_cognito_identity_provider.apple,
+    aws_cognito_identity_provider.microsoft,
+  ]
 }
 
 # ── Cognito-hosted UI domain (for the managed sign-in page) ───────────────

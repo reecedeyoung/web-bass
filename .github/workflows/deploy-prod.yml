@@ -55,6 +55,9 @@ jobs:
           VITE_COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
           VITE_COGNITO_CLIENT_ID: ${{ secrets.COGNITO_USER_POOL_CLIENT_ID }}
           VITE_COGNITO_IDENTITY_POOL_ID: ${{ secrets.COGNITO_IDENTITY_POOL_ID }}
+          VITE_COGNITO_DOMAIN: ${{ secrets.COGNITO_HOSTED_UI_DOMAIN }}
+          VITE_PRESETS_TABLE: ${{ secrets.DYNAMODB_PRESETS_TABLE }}
+          VITE_MAPPINGS_TABLE: ${{ secrets.DYNAMODB_MAPPINGS_TABLE }}
           VITE_AWS_REGION: us-east-1
           VITE_APP_VERSION: ${{ github.ref_name }}
 

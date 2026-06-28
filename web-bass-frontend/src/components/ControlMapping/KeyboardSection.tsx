@@ -1,5 +1,6 @@
-import { Fragment, useCallback, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { useAudio } from '../../context/AudioContext'
+import { useAuth } from '../../context/AuthContext'
 import type { KeyMapping } from '../../mappings/types'
 import defaultLayout from '../../mappings/default-bass-layout.json'
 import { PRESETS } from '../../mappings/presets'
@@ -10,9 +11,11 @@ import {
   buildMappingFromTunings,
   midiToName,
 } from './keyboardUtils'
+import { fetchMappings, putMapping } from '../../lib/mappingsApi'
 
 const MIN_OPEN_NOTE = OPEN_NOTE_OPTIONS[0].value
 const MAX_OPEN_NOTE = OPEN_NOTE_OPTIONS[OPEN_NOTE_OPTIONS.length - 1].value
+const MAPPING_ID    = 'default'
 
 function minNotesFromMapping(m: KeyMapping): Map<number, number> {
   const result = new Map<number, number>()
@@ -24,11 +27,14 @@ function minNotesFromMapping(m: KeyMapping): Map<number, number> {
 }
 
 export default function KeyboardSection() {
-  const { keyboard, engine } = useAudio()
-  const [mapping,      setMapping]      = useState<KeyMapping>(defaultLayout as KeyMapping)
-  const [advanced,     setAdvanced]     = useState(false)
-  const [uploadError,  setUploadError]  = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { keyboard, engine }           = useAudio()
+  const { identityId, isAuthenticated, openLoginModal } = useAuth()
+  const [mapping,     setMapping]      = useState<KeyMapping>(defaultLayout as KeyMapping)
+  const [advanced,    setAdvanced]     = useState(false)
+  const [uploadError, setUploadError]  = useState<string | null>(null)
+  const fileInputRef   = useRef<HTMLInputElement>(null)
+  const saveTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isFirstRender  = useRef(true)
 
   const openNotes = deriveOpenNotes(mapping)
 
@@ -37,6 +43,30 @@ export default function KeyboardSection() {
     keyboard?.setMapping(m)
     engine?.setChannelMinNotes(minNotesFromMapping(m))
   }, [keyboard, engine])
+
+  // Load saved mapping from cloud on sign-in
+  useEffect(() => {
+    if (!identityId) return
+    fetchMappings(identityId).then(mappings => {
+      if (mappings.length > 0) applyMapping(mappings[0])
+    }).catch(console.error)
+  }, [identityId])
+
+  // Auto-save mapping to cloud (debounced) when authenticated
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    if (!identityId) return
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => {
+      putMapping(identityId, MAPPING_ID, mapping).catch(console.error)
+    }, 1500)
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    }
+  }, [mapping, identityId])
 
   const handleTuneStep = (stringIdx: number, delta: number) => {
     const next = Math.max(MIN_OPEN_NOTE, Math.min(MAX_OPEN_NOTE, openNotes[stringIdx] + delta))
@@ -68,7 +98,6 @@ export default function KeyboardSection() {
       }
     }
     reader.readAsText(file)
-    // Reset so the same file can be re-uploaded if needed
     e.target.value = ''
   }
 
@@ -81,10 +110,17 @@ export default function KeyboardSection() {
         <h3 className="cm-subsection-title">String Tuning</h3>
         <p className="cm-hint">
           Set each string's open note. All fret keys on that row shift to match.
+          {isAuthenticated && <span className="cm-save-indicator"> Changes are saved to your account automatically.</span>}
         </p>
 
+        {!isAuthenticated && (
+          <p className="cm-hint cm-hint--auth">
+            <button className="cm-link-btn" onClick={openLoginModal}>Sign in</button>
+            {' '}to save your tuning across sessions.
+          </p>
+        )}
+
         <div className="cm-string-grid">
-          {/* Header */}
           <span className="cm-col-label">Tune</span>
           <span className="cm-col-label">String</span>
           <span className="cm-col-label">Keys</span>

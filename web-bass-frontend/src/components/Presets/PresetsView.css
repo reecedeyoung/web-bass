@@ -102,6 +102,39 @@
   background: rgba(239, 68, 68, 0.08);
 }
 
+/* ── Auth gate ── */
+
+.presets-auth-gate {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.presets-gate-text {
+  color: var(--text);
+  font-size: 14px;
+  margin: 0;
+}
+
+.presets-gate-btn {
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--sans);
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.88;
+  }
+}
+
 /* ── Save row ── */
 
 .presets-save-row {

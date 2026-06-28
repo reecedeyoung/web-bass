@@ -1,56 +1,54 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import type { Preset } from './types'
 import { BUILT_IN_PRESETS } from './builtins'
 import type { EngineParams } from '../audio/EngineParams'
-
-const STORAGE_KEY = 'bass-user-presets'
-
-function readStorage(): Preset[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as Preset[]) : []
-  } catch {
-    return []
-  }
-}
-
-function writeStorage(presets: Preset[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(presets))
-}
+import { useAuth } from '../context/AuthContext'
+import { fetchPresets, putPreset, removePreset } from '../lib/presetsApi'
 
 export function usePresets() {
-  const [userPresets, setUserPresets] = useState<Preset[]>(readStorage)
+  const { identityId } = useAuth()
+  const [userPresets, setUserPresets] = useState<Preset[]>([])
   const [activeId,    setActiveId]    = useState<string | null>(null)
+  const [isLoading,   setIsLoading]   = useState(false)
+
+  useEffect(() => {
+    if (!identityId) {
+      setUserPresets([])
+      setActiveId(null)
+      return
+    }
+    setIsLoading(true)
+    fetchPresets(identityId)
+      .then(setUserPresets)
+      .catch(console.error)
+      .finally(() => setIsLoading(false))
+  }, [identityId])
 
   const load = useCallback((preset: Preset): EngineParams => {
     setActiveId(preset.id)
     return preset.params
   }, [])
 
-  const save = useCallback((name: string, params: EngineParams, description?: string): Preset => {
-    const preset: Preset = { id: Date.now().toString(), name, description, params }
-    setUserPresets(prev => {
-      const next = [...prev, preset]
-      writeStorage(next)
-      return next
-    })
+  const save = useCallback(async (name: string, params: EngineParams): Promise<void> => {
+    if (!identityId) return
+    const preset: Preset = { id: crypto.randomUUID(), name, params }
+    setUserPresets(prev => [...prev, preset])
     setActiveId(preset.id)
-    return preset
-  }, [])
+    await putPreset(identityId, preset)
+  }, [identityId])
 
-  const remove = useCallback((id: string): void => {
-    setUserPresets(prev => {
-      const next = prev.filter(p => p.id !== id)
-      writeStorage(next)
-      return next
-    })
+  const remove = useCallback(async (id: string): Promise<void> => {
+    if (!identityId) return
+    setUserPresets(prev => prev.filter(p => p.id !== id))
     setActiveId(prev => (prev === id ? null : prev))
-  }, [])
+    await removePreset(identityId, id)
+  }, [identityId])
 
   return {
     builtIns:    BUILT_IN_PRESETS,
     userPresets,
     activeId,
+    isLoading,
     load,
     save,
     remove,

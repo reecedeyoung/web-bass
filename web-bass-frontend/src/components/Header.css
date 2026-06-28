@@ -62,13 +62,13 @@
   }
 }
 
+/* ── Profile icon ── */
+
 .header-icon-profile {
   width: 48px;
   height: 48px;
   background: var(--accent);
   color: #fff;
-  cursor: default;
-  pointer-events: none;
 
   svg {
     width: 24px;
@@ -76,6 +76,66 @@
   }
 
   &:hover {
-    box-shadow: none;
+    box-shadow: var(--shadow);
+  }
+}
+
+.header-icon-profile--active {
+  background: var(--accent);
+}
+
+.header-profile-initials {
+  font-size: 18px;
+  font-weight: 600;
+  font-family: var(--sans);
+  line-height: 1;
+  color: #fff;
+  user-select: none;
+}
+
+/* ── Profile wrapper + dropdown menu ── */
+
+.header-profile-wrap {
+  position: relative;
+}
+
+.header-user-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.header-user-email {
+  font-size: 13px;
+  color: var(--text);
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-user-menu-item {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-family: var(--sans);
+  color: var(--text-h);
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--social-bg);
   }
 }

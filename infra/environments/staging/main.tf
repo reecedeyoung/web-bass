@@ -67,6 +67,17 @@ module "cognito" {
   environment   = var.environment
   callback_urls = var.callback_urls
   logout_urls   = var.logout_urls
+
+  google_client_id        = var.google_client_id
+  google_client_secret    = var.google_client_secret
+  facebook_app_id         = var.facebook_app_id
+  facebook_app_secret     = var.facebook_app_secret
+  apple_service_id        = var.apple_service_id
+  apple_team_id           = var.apple_team_id
+  apple_key_id            = var.apple_key_id
+  apple_private_key       = var.apple_private_key
+  microsoft_client_id     = var.microsoft_client_id
+  microsoft_client_secret = var.microsoft_client_secret
 }
 
 # ── DynamoDB ───────────────────────────────────────────────────────────────
