@@ -260,7 +260,24 @@
   opacity: 0.8;
 }
 
-/* ── Error ── */
+/* ── Status messages ── */
+
+.lm-info {
+  font-size: 13px;
+  color: #166534;
+  background: rgba(22, 101, 52, 0.08);
+  border: 1px solid rgba(22, 101, 52, 0.2);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .lm-info {
+    color: #86efac;
+    background: rgba(134, 239, 172, 0.1);
+  }
+}
 
 .lm-error {
   font-size: 13px;

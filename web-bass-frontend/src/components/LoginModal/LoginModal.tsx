@@ -90,6 +90,7 @@ export default function LoginModal() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [code,            setCode]            = useState('')
   const [error,           setError]           = useState<string | null>(null)
+  const [info,            setInfo]            = useState<string | null>(null)
   const [isSubmitting,    setIsSubmitting]    = useState(false)
   const firstInputRef = useRef<HTMLInputElement>(null)
 
@@ -101,6 +102,7 @@ export default function LoginModal() {
 
   useEffect(() => {
     setError(null)
+    setInfo(null)
     // Small delay so the new view has rendered before focusing
     const t = setTimeout(() => firstInputRef.current?.focus(), 50)
     return () => clearTimeout(t)
@@ -147,6 +149,16 @@ export default function LoginModal() {
       })
       goTo('verify')
     } catch (err) {
+      // Account exists but is unconfirmed — resend the code and let them verify
+      if ((err as { name?: string }).name === 'UsernameExistsException') {
+        try {
+          await resendSignUpCode({ username: email })
+          goTo('verify')
+          return
+        } catch {
+          // Account is confirmed — fall through to the generic error
+        }
+      }
       setError(friendlyError(err))
     } finally {
       setIsSubmitting(false)
@@ -169,8 +181,10 @@ export default function LoginModal() {
 
   async function handleResendCode() {
     setError(null)
+    setInfo(null)
     try {
       await resendSignUpCode({ username: email })
+      setInfo('A new code was sent. Check your spam folder if it doesn\'t arrive.')
     } catch (err) {
       setError(friendlyError(err))
     }
@@ -184,6 +198,16 @@ export default function LoginModal() {
       await resetPassword({ username: email })
       goTo('reset')
     } catch (err) {
+      // Cognito blocks password reset for unconfirmed accounts
+      if ((err as { name?: string }).name === 'InvalidParameterException') {
+        try {
+          await resendSignUpCode({ username: email })
+          goTo('verify')
+          return
+        } catch {
+          // Fall through to generic error
+        }
+      }
       setError(friendlyError(err))
     } finally {
       setIsSubmitting(false)
@@ -220,6 +244,10 @@ export default function LoginModal() {
 
   function ErrorMsg() {
     return error ? <p className="lm-error" role="alert">{error}</p> : null
+  }
+
+  function InfoMsg() {
+    return info ? <p className="lm-info" role="status">{info}</p> : null
   }
 
   // ── Views ───────────────────────────────────────────────────────────────
@@ -372,6 +400,7 @@ export default function LoginModal() {
             />
           </div>
           <ErrorMsg />
+          <InfoMsg />
           <button className="lm-submit" type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Verifying…' : 'Verify email'}
           </button>
