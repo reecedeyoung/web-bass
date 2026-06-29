@@ -27,24 +27,27 @@ function minNotesFromMapping(m: KeyMapping): Map<number, number> {
 }
 
 export default function KeyboardSection() {
-  const { keyboard, engine }           = useAudio()
+  const { keyboard, engine }                         = useAudio()
   const { identityId, isAuthenticated, openLoginModal } = useAuth()
-  const [mapping,     setMapping]      = useState<KeyMapping>(defaultLayout as KeyMapping)
-  const [advanced,    setAdvanced]     = useState(false)
-  const [uploadError, setUploadError]  = useState<string | null>(null)
-  const fileInputRef   = useRef<HTMLInputElement>(null)
-  const saveTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const isFirstRender  = useRef(true)
-
-  const openNotes = deriveOpenNotes(mapping)
+  const [mapping,          setMapping]          = useState<KeyMapping>(defaultLayout as KeyMapping)
+  const [pendingNotes,     setPendingNotes]     = useState<number[]>(() => deriveOpenNotes(defaultLayout as KeyMapping))
+  const [pendingPreset,    setPendingPreset]    = useState(defaultLayout.name)
+  const [uploadError,      setUploadError]      = useState<string | null>(null)
+  const fileInputRef  = useRef<HTMLInputElement>(null)
+  const saveTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isFirstRender = useRef(true)
+  const keyboardRef   = useRef(keyboard)
+  const engineRef     = useRef(engine)
+  useEffect(() => { keyboardRef.current = keyboard }, [keyboard])
+  useEffect(() => { engineRef.current   = engine   }, [engine])
 
   const applyMapping = useCallback((m: KeyMapping) => {
     setMapping(m)
-    keyboard?.setMapping(m)
-    engine?.setChannelMinNotes(minNotesFromMapping(m))
-  }, [keyboard, engine])
+    keyboardRef.current?.setMapping(m)
+    engineRef.current?.setChannelMinNotes(minNotesFromMapping(m))
+    setPendingNotes(deriveOpenNotes(m))
+  }, [])
 
-  // Load saved mapping from cloud on sign-in
   useEffect(() => {
     if (!identityId) return
     fetchMappings(identityId).then(mappings => {
@@ -52,39 +55,37 @@ export default function KeyboardSection() {
     }).catch(console.error)
   }, [identityId])
 
-  // Auto-save mapping to cloud (debounced) when authenticated
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false
-      return
-    }
+    if (isFirstRender.current) { isFirstRender.current = false; return }
     if (!identityId) return
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
       putMapping(identityId, MAPPING_ID, mapping).catch(console.error)
     }, 1500)
-    return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-    }
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
   }, [mapping, identityId])
 
-  const handleTuneStep = (stringIdx: number, delta: number) => {
-    const next = Math.max(MIN_OPEN_NOTE, Math.min(MAX_OPEN_NOTE, openNotes[stringIdx] + delta))
-    if (next === openNotes[stringIdx]) return
-    const notes = openNotes.map((n, i) => i === stringIdx ? next : n)
-    applyMapping(buildMappingFromTunings(notes))
+  function handleTuneStep(stringIdx: number, delta: number) {
+    setPendingNotes(prev => {
+      const next = [...prev]
+      next[stringIdx] = Math.max(MIN_OPEN_NOTE, Math.min(MAX_OPEN_NOTE, prev[stringIdx] + delta))
+      return next
+    })
   }
 
-  const handlePreset = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const preset = PRESETS.find(p => p.name === e.target.value)
+  function handleApplyGenerate() {
+    applyMapping(buildMappingFromTunings(pendingNotes))
+  }
+
+  function handleApplyLoad() {
+    const preset = PRESETS.find(p => p.name === pendingPreset)
     if (preset) applyMapping(preset)
   }
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setUploadError(null)
-
     const reader = new FileReader()
     reader.onload = () => {
       try {
@@ -102,17 +103,14 @@ export default function KeyboardSection() {
   }
 
   return (
-    <section className="cm-section">
-      <h2 className="cm-section-title">Keyboard Mapping</h2>
-
-      {/* ── String tuning ── */}
-      <div className="cm-subsection">
-        <h3 className="cm-subsection-title">String Tuning</h3>
+    <>
+      {/* ── Generate Mapping ── */}
+      <section className="cm-section">
+        <h2 className="cm-section-title">Generate Mapping</h2>
         <p className="cm-hint">
           Set each string's open note. All fret keys on that row shift to match.
           {isAuthenticated && <span className="cm-save-indicator"> Changes are saved to your account automatically.</span>}
         </p>
-
         {!isAuthenticated && (
           <p className="cm-hint cm-hint--auth">
             <button className="cm-link-btn" onClick={openLoginModal}>Sign in</button>
@@ -127,7 +125,7 @@ export default function KeyboardSection() {
           <span className="cm-col-label">Range</span>
 
           {STRING_ROWS.map((row, i) => {
-            const open = openNotes[i]
+            const open = pendingNotes[i]
             const high = open + row.keys.length - 1
             return (
               <Fragment key={row.name}>
@@ -157,64 +155,56 @@ export default function KeyboardSection() {
             )
           })}
         </div>
-      </div>
 
-      {/* ── Advanced toggle ── */}
-      <button
-        className="cm-advanced-toggle"
-        onClick={() => setAdvanced(v => !v)}
-        aria-expanded={advanced}
-      >
-        <span className="cm-advanced-arrow">{advanced ? '▲' : '▼'}</span>
-        Advanced
-      </button>
-
-      {/* ── Advanced section ── */}
-      {advanced && (
-        <div className="cm-subsection">
-          <div className="cm-field">
-            <label htmlFor="cm-preset-select" className="cm-label">Load preset</label>
-            <select
-              id="cm-preset-select"
-              className="cm-note-select"
-              value={mapping.name}
-              onChange={handlePreset}
-            >
-              {PRESETS.map(p => (
-                <option key={p.name} value={p.name}>{p.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="cm-field">
-            <label className="cm-label">Upload custom mapping</label>
-            <div className="cm-upload-row">
-              <button
-                className="cm-upload-btn"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                Choose .json file
-              </button>
-              <span className="cm-upload-name">
-                {mapping.name !== defaultLayout.name ? mapping.name : 'No file chosen'}
-              </span>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json"
-              style={{ display: 'none' }}
-              onChange={handleFileUpload}
-            />
-            {uploadError && (
-              <p className="cm-notice cm-notice--error">{uploadError}</p>
-            )}
-            <p className="cm-hint">
-              Must conform to <code>key-mapping.schema.json</code>.
-            </p>
-          </div>
+        <div className="cm-apply-row">
+          <button className="cm-apply-btn" onClick={handleApplyGenerate}>Apply</button>
         </div>
-      )}
-    </section>
+      </section>
+
+      {/* ── Load Mapping ── */}
+      <section className="cm-section">
+        <h2 className="cm-section-title">Load Mapping</h2>
+
+        <div className="cm-load-row">
+          <select
+            className="cm-note-select"
+            value={pendingPreset}
+            onChange={e => setPendingPreset(e.target.value)}
+          >
+            {PRESETS.map(p => (
+              <option key={p.name} value={p.name}>{p.name}</option>
+            ))}
+          </select>
+          <button className="cm-apply-btn" onClick={handleApplyLoad}>
+            Apply
+          </button>
+        </div>
+
+        <div className="cm-upload-row" style={{ marginTop: 14 }}>
+          <button
+            className="cm-upload-btn"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Upload .json
+          </button>
+          <span className="cm-upload-name">
+            {mapping.name !== defaultLayout.name ? mapping.name : 'No file chosen'}
+          </span>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          style={{ display: 'none' }}
+          onChange={handleFileUpload}
+        />
+        {uploadError && (
+          <p className="cm-notice cm-notice--error">{uploadError}</p>
+        )}
+        <p className="cm-hint" style={{ marginTop: 6 }}>
+          Must conform to <code>key-mapping.schema.json</code>.
+        </p>
+      </section>
+    </>
   )
 }

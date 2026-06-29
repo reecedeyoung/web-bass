@@ -197,34 +197,43 @@
   outline-offset: 1px;
 }
 
-/* ── Advanced toggle ── */
+/* ── Apply button ── */
 
-.cm-advanced-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 20px;
-  padding: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
+.cm-apply-btn {
+  padding: 8px 20px;
   font: inherit;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text);
-  transition: color 0.15s;
-}
-
-.cm-advanced-toggle:hover {
-  color: var(--text-h);
-}
-
-.cm-advanced-arrow {
-  font-size: 10px;
+  background: var(--accent-bg);
   color: var(--accent);
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s;
 }
 
-/* ── Advanced fields ── */
+.cm-apply-btn:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* ── Rows with inline Apply button ── */
+
+.cm-apply-row,
+.cm-load-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cm-apply-row {
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+/* ── Fields ── */
 
 .cm-field {
   margin-top: 14px;

@@ -32,6 +32,7 @@ export class KeyboardInputSource implements InputSource {
 
   private readonly onKeyDown = (e: KeyboardEvent): void => {
     if (e.repeat || e.metaKey || e.ctrlKey) return
+    if (document.querySelector('[role="dialog"]')) return
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key
     const binding = this.mapping.mappings[key]
     if (!binding || this.heldKeys.has(key)) return
