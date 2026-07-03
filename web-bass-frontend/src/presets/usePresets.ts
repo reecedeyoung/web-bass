@@ -18,7 +18,7 @@ export function usePresets() {
       return
     }
     setIsLoading(true)
-    fetchPresets()
+    fetchPresets(identityId)
       .then(setUserPresets)
       .catch(console.error)
       .finally(() => setIsLoading(false))
@@ -34,14 +34,14 @@ export function usePresets() {
     const preset: Preset = { id: crypto.randomUUID(), name, params }
     setUserPresets(prev => [...prev, preset])
     setActiveId(preset.id)
-    await putPreset(preset)
+    await putPreset(identityId, preset)
   }, [identityId])
 
   const remove = useCallback(async (id: string): Promise<void> => {
     if (!identityId) return
     setUserPresets(prev => prev.filter(p => p.id !== id))
     setActiveId(prev => (prev === id ? null : prev))
-    await removePreset(id)
+    await removePreset(identityId, id)
   }, [identityId])
 
   return {

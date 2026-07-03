@@ -10,10 +10,3 @@ export async function getDynamoClient(): Promise<DynamoDBDocumentClient> {
   })
   return DynamoDBDocumentClient.from(client)
 }
-
-export async function getAuthenticatedUserId(): Promise<string> {
-  const session = await fetchAuthSession()
-  const userId = session.identityId
-  if (!userId) throw new Error('Not authenticated')
-  return userId
-}

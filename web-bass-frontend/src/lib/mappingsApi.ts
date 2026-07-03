@@ -1,12 +1,12 @@
 import { QueryCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
-import { getDynamoClient, getAuthenticatedUserId } from './dynamodb'
+import { getDynamoClient } from './dynamodb'
 import type { KeyMapping } from '../mappings/types'
 
 const TABLE = import.meta.env.VITE_MAPPINGS_TABLE as string | undefined
 
-export async function fetchMappings(): Promise<KeyMapping[]> {
+export async function fetchMappings(userId: string): Promise<KeyMapping[]> {
   if (!TABLE) return []
-  const [client, userId] = await Promise.all([getDynamoClient(), getAuthenticatedUserId()])
+  const client = await getDynamoClient()
   const result = await client.send(new QueryCommand({
     TableName:                 TABLE,
     KeyConditionExpression:    'userId = :uid',
@@ -20,9 +20,13 @@ export async function fetchMappings(): Promise<KeyMapping[]> {
   }))
 }
 
-export async function putMapping(mappingId: string, mapping: KeyMapping): Promise<void> {
+export async function putMapping(
+  userId: string,
+  mappingId: string,
+  mapping: KeyMapping,
+): Promise<void> {
   if (!TABLE) return
-  const [client, userId] = await Promise.all([getDynamoClient(), getAuthenticatedUserId()])
+  const client = await getDynamoClient()
   await client.send(new PutCommand({
     TableName: TABLE,
     Item: {

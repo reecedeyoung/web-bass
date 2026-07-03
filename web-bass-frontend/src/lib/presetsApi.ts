@@ -1,12 +1,12 @@
 import { QueryCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb'
-import { getDynamoClient, getAuthenticatedUserId } from './dynamodb'
+import { getDynamoClient } from './dynamodb'
 import type { Preset } from '../presets/types'
 
 const TABLE = import.meta.env.VITE_PRESETS_TABLE as string | undefined
 
-export async function fetchPresets(): Promise<Preset[]> {
+export async function fetchPresets(userId: string): Promise<Preset[]> {
   if (!TABLE) return []
-  const [client, userId] = await Promise.all([getDynamoClient(), getAuthenticatedUserId()])
+  const client = await getDynamoClient()
   const result = await client.send(new QueryCommand({
     TableName:                 TABLE,
     KeyConditionExpression:    'userId = :uid',
@@ -20,9 +20,9 @@ export async function fetchPresets(): Promise<Preset[]> {
   }))
 }
 
-export async function putPreset(preset: Preset): Promise<void> {
+export async function putPreset(userId: string, preset: Preset): Promise<void> {
   if (!TABLE) return
-  const [client, userId] = await Promise.all([getDynamoClient(), getAuthenticatedUserId()])
+  const client = await getDynamoClient()
   await client.send(new PutCommand({
     TableName: TABLE,
     Item: {
@@ -35,9 +35,9 @@ export async function putPreset(preset: Preset): Promise<void> {
   }))
 }
 
-export async function removePreset(presetId: string): Promise<void> {
+export async function removePreset(userId: string, presetId: string): Promise<void> {
   if (!TABLE) return
-  const [client, userId] = await Promise.all([getDynamoClient(), getAuthenticatedUserId()])
+  const client = await getDynamoClient()
   await client.send(new DeleteCommand({
     TableName: TABLE,
     Key: { userId, presetId },
