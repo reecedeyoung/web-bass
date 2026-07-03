@@ -48,8 +48,9 @@ provider "aws" {
   }
 }
 
-# API token read from CLOUDFLARE_API_TOKEN environment variable
-provider "cloudflare" {}
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
+}
 
 # ── Networking ─────────────────────────────────────────────────────────────
 

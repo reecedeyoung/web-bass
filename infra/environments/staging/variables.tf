@@ -44,6 +44,12 @@ variable "cloudflare_zone_id" {
   description = "Cloudflare zone ID for web-bass.com — Overview page right sidebar"
 }
 
+variable "cloudflare_api_token" {
+  type        = string
+  sensitive   = true
+  description = "Cloudflare API token — dash.cloudflare.com > My Profile > API Tokens (needs Zone:DNS:Edit)"
+}
+
 # ── Social provider credentials (set in terraform.tfvars when ready) ───────
 
 variable "google_client_id" {

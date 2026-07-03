@@ -1,0 +1,22 @@
+project     = "k-strong-bass"
+environment = "staging"
+aws_region  = "us-east-1"
+domain_name = "staging.web-bass.com"
+
+callback_urls = [
+  "https://staging.web-bass.com",
+  "http://localhost:5173",
+]
+
+logout_urls = [
+  "https://staging.web-bass.com",
+  "http://localhost:5173",
+]
+
+github_subject_claim = "repo:YOUR_ORG/YOUR_REPO:environment:staging"
+
+# Cloudflare dashboard → web-bass.com → Overview → Zone ID (right sidebar)
+cloudflare_zone_id = "YOUR_CLOUDFLARE_ZONE_ID"
+
+# dash.cloudflare.com → My Profile → API Tokens (needs Zone:DNS:Edit)
+cloudflare_api_token = "YOUR_CLOUDFLARE_API_TOKEN"

@@ -3,7 +3,8 @@
 *.tfstate
 *.tfstate.backup
 *.tfplan
-.terraform.tfvars
+terraform.tfvars
+*.auto.tfvars
 override.tf
 override.tf.json
 *_override.tf
