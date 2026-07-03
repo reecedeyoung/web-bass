@@ -44,11 +44,11 @@ jobs:
           cache: npm
           cache-dependency-path: web-bass-frontend/package-lock.json
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         working-directory: web-bass-frontend
         run: npm install
 
-      - name: Build
+      - name: Build frontend
         working-directory: web-bass-frontend
         run: npm run build
         env:
@@ -56,16 +56,28 @@ jobs:
           VITE_COGNITO_CLIENT_ID: ${{ secrets.COGNITO_USER_POOL_CLIENT_ID }}
           VITE_COGNITO_IDENTITY_POOL_ID: ${{ secrets.COGNITO_IDENTITY_POOL_ID }}
           VITE_COGNITO_DOMAIN: ${{ secrets.COGNITO_HOSTED_UI_DOMAIN }}
-          VITE_PRESETS_TABLE: ${{ secrets.DYNAMODB_PRESETS_TABLE }}
-          VITE_MAPPINGS_TABLE: ${{ secrets.DYNAMODB_MAPPINGS_TABLE }}
           VITE_AWS_REGION: us-east-1
           VITE_APP_VERSION: ${{ github.ref_name }}
+
+      - name: Install Lambda dependencies
+        working-directory: lambda/api
+        run: npm install
+
+      - name: Package Lambda
+        working-directory: lambda/api
+        run: npm run package
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: us-east-1
+
+      - name: Deploy Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
+            --zip-file fileb://lambda/api/api.zip
 
       - name: Sync to S3
         run: |

@@ -48,9 +48,17 @@ output "deploy_role_arn" {
   value       = module.cicd_role.role_arn
 }
 
-# ── Future API ─────────────────────────────────────────────────────────────
-
 output "api_elastic_ip" {
-  description = "Reserved for the future API server"
+  description = "Reserved Elastic IP — not currently used"
   value       = module.networking.elastic_ip_address
+}
+
+output "api_gateway_url" {
+  description = "API Gateway invoke URL (set VITE_DEV_API_URL in .env.local to this for local dev)"
+  value       = module.api.api_gateway_url
+}
+
+output "lambda_function_name" {
+  description = "Set as LAMBDA_FUNCTION_NAME secret in the GitHub staging environment"
+  value       = module.api.lambda_function_name
 }

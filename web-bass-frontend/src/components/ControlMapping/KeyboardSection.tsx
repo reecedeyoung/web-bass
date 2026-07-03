@@ -27,8 +27,8 @@ function minNotesFromMapping(m: KeyMapping): Map<number, number> {
 }
 
 export default function KeyboardSection() {
-  const { keyboard, engine }                         = useAudio()
-  const { identityId, isAuthenticated, openLoginModal } = useAuth()
+  const { keyboard, engine }                    = useAudio()
+  const { isAuthenticated, openLoginModal } = useAuth()
   const [mapping,          setMapping]          = useState<KeyMapping>(defaultLayout as KeyMapping)
   const [pendingNotes,     setPendingNotes]     = useState<number[]>(() => deriveOpenNotes(defaultLayout as KeyMapping))
   const [pendingPreset,    setPendingPreset]    = useState(defaultLayout.name)
@@ -49,21 +49,21 @@ export default function KeyboardSection() {
   }, [])
 
   useEffect(() => {
-    if (!identityId) return
-    fetchMappings(identityId).then(mappings => {
+    if (!isAuthenticated) return
+    fetchMappings().then(mappings => {
       if (mappings.length > 0) applyMapping(mappings[0])
     }).catch(console.error)
-  }, [identityId])
+  }, [isAuthenticated])
 
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return }
-    if (!identityId) return
+    if (!isAuthenticated) return
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
-      putMapping(identityId, MAPPING_ID, mapping).catch(console.error)
+      putMapping(MAPPING_ID, mapping).catch(console.error)
     }, 1500)
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
-  }, [mapping, identityId])
+  }, [mapping, isAuthenticated])
 
   function handleTuneStep(stringIdx: number, delta: number) {
     setPendingNotes(prev => {

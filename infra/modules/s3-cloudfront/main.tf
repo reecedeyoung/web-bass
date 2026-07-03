@@ -92,6 +92,37 @@ resource "aws_cloudfront_distribution" "website" {
     origin_access_control_id = aws_cloudfront_origin_access_control.website.id
   }
 
+  dynamic "origin" {
+    for_each = var.api_gateway_url != "" ? [1] : []
+    content {
+      domain_name = trimsuffix(replace(var.api_gateway_url, "https://", ""), "/")
+      origin_id   = "${var.project}-${var.environment}-api"
+      custom_origin_config {
+        http_port              = 80
+        https_port             = 443
+        origin_protocol_policy = "https-only"
+        origin_ssl_protocols   = ["TLSv1.2"]
+      }
+    }
+  }
+
+  # Route /api/* to API Gateway — evaluated before the default S3 behavior.
+  dynamic "ordered_cache_behavior" {
+    for_each = var.api_gateway_url != "" ? [1] : []
+    content {
+      path_pattern           = "/api/*"
+      allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+      cached_methods         = ["GET", "HEAD"]
+      target_origin_id       = "${var.project}-${var.environment}-api"
+      viewer_protocol_policy = "redirect-to-https"
+      compress               = true
+      # CachingDisabled — never cache API responses
+      cache_policy_id          = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+      # AllViewerExceptHostHeader — forwards Authorization header, replaces Host with origin domain
+      origin_request_policy_id = "b689b0a8-53d0-40ab-baf2-68738e2966ac"
+    }
+  }
+
   default_cache_behavior {
     allowed_methods        = ["GET", "HEAD", "OPTIONS"]
     cached_methods         = ["GET", "HEAD"]

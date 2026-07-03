@@ -67,6 +67,21 @@ data "aws_iam_policy_document" "deploy" {
       "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${var.cloudfront_distribution_id}",
     ]
   }
+
+  dynamic "statement" {
+    for_each = var.lambda_function_name != "" ? [1] : []
+    content {
+      sid    = "LambdaDeploy"
+      effect = "Allow"
+      actions = [
+        "lambda:UpdateFunctionCode",
+        "lambda:GetFunction",
+      ]
+      resources = [
+        "arn:aws:lambda:*:${data.aws_caller_identity.current.account_id}:function:${var.lambda_function_name}",
+      ]
+    }
+  }
 }
 
 resource "aws_iam_role_policy" "deploy" {

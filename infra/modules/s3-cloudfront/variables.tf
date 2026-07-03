@@ -21,3 +21,9 @@ variable "price_class" {
   type        = string
   default     = "PriceClass_100" # US, Canada, Europe
 }
+
+variable "api_gateway_url" {
+  description = "API Gateway invoke URL. When set, /api/* requests are routed to it instead of S3."
+  type        = string
+  default     = ""
+}

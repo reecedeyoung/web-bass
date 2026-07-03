@@ -1,0 +1,17 @@
+{
+  "name": "bass-api",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node22 --outfile=dist/index.js --external:@aws-sdk/*",
+    "package": "npm run build && cd dist && zip -r ../api.zip . && cd ..",
+    "clean": "rm -rf dist api.zip"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-cognito-identity": "^3.0.0",
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/lib-dynamodb": "^3.0.0",
+    "@types/aws-lambda": "^8.10.145",
+    "esbuild": "^0.25.0",
+    "typescript": "~5.4.0"
+  }
+}

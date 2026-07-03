@@ -47,9 +47,17 @@ output "deploy_role_arn" {
   value       = module.cicd_role.role_arn
 }
 
-# ── Future API ─────────────────────────────────────────────────────────────
-
 output "api_elastic_ip" {
-  description = "Reserved for the future API server — add an A record here when the ECS service is live"
+  description = "Reserved Elastic IP — not currently used"
   value       = module.networking.elastic_ip_address
+}
+
+output "api_gateway_url" {
+  description = "API Gateway invoke URL"
+  value       = module.api.api_gateway_url
+}
+
+output "lambda_function_name" {
+  description = "Set as LAMBDA_FUNCTION_NAME secret in the GitHub prod environment"
+  value       = module.api.lambda_function_name
 }

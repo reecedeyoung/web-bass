@@ -16,6 +16,12 @@ variable "cloudfront_distribution_id" {
   description = "CloudFront distribution ID the role may invalidate"
 }
 
+variable "lambda_function_name" {
+  type        = string
+  description = "Lambda function name the role may update code on"
+  default     = ""
+}
+
 variable "github_subject_claim" {
   type        = string
   description = <<-EOT

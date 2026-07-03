@@ -90,6 +90,30 @@ module "dynamodb" {
   authenticated_role_id = module.cognito.authenticated_role_id
 }
 
+# ── API (Lambda + API Gateway) ─────────────────────────────────────────────
+
+data "aws_caller_identity" "current" {}
+
+module "api" {
+  source      = "../../modules/api"
+  project     = var.project
+  environment = var.environment
+  aws_region  = var.aws_region
+  account_id  = data.aws_caller_identity.current.account_id
+
+  cognito_user_pool_id        = module.cognito.user_pool_id
+  cognito_user_pool_client_id = module.cognito.user_pool_client_id
+  cognito_identity_pool_id    = module.cognito.identity_pool_id
+
+  presets_table_name           = module.dynamodb.presets_table_name
+  presets_table_arn            = module.dynamodb.presets_table_arn
+  keyboard_mappings_table_name = module.dynamodb.keyboard_mappings_table_name
+  keyboard_mappings_table_arn  = module.dynamodb.keyboard_mappings_table_arn
+
+  cors_allow_origins = ["https://web-bass.com", "https://www.web-bass.com"]
+  lambda_zip_path    = "${path.module}/../../../lambda/api/api.zip"
+}
+
 # ── ACM cert — validated via Cloudflare DNS ────────────────────────────────
 
 module "dns" {
@@ -116,6 +140,7 @@ module "cloudfront" {
   environment         = var.environment
   domain_aliases      = [var.domain_name, "www.${var.domain_name}"]
   acm_certificate_arn = module.dns.acm_certificate_arn
+  api_gateway_url     = module.api.api_gateway_url
 }
 
 # ── CI/CD deploy role ──────────────────────────────────────────────────────
@@ -127,6 +152,7 @@ module "cicd_role" {
   s3_bucket_arn              = module.cloudfront.s3_bucket_arn
   cloudfront_distribution_id = module.cloudfront.cloudfront_distribution_id
   github_subject_claim       = var.github_subject_claim
+  lambda_function_name       = module.api.lambda_function_name
 }
 
 # ── Cloudflare DNS records → CloudFront ───────────────────────────────────

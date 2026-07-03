@@ -1,45 +1,24 @@
-import { QueryCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb'
-import { getDynamoClient } from './dynamodb'
+import { apiFetch } from './apiClient'
 import type { Preset } from '../presets/types'
 
-const TABLE = import.meta.env.VITE_PRESETS_TABLE as string | undefined
-
-export async function fetchPresets(userId: string): Promise<Preset[]> {
-  if (!TABLE) return []
-  const client = await getDynamoClient()
-  const result = await client.send(new QueryCommand({
-    TableName:                 TABLE,
-    KeyConditionExpression:    'userId = :uid',
-    ExpressionAttributeValues: { ':uid': userId },
-  }))
-  return (result.Items ?? []).map(item => ({
-    id:          item['presetId'] as string,
-    name:        item['name']     as string,
-    description: item['description'] as string | undefined,
-    params:      item['params']   as Preset['params'],
-  }))
+export async function fetchPresets(): Promise<Preset[]> {
+  const res = await apiFetch('/api/presets')
+  if (!res.ok) throw new Error(`Failed to load presets (${res.status})`)
+  return res.json()
 }
 
-export async function putPreset(userId: string, preset: Preset): Promise<void> {
-  if (!TABLE) return
-  const client = await getDynamoClient()
-  await client.send(new PutCommand({
-    TableName: TABLE,
-    Item: {
-      userId,
-      presetId:    preset.id,
-      name:        preset.name,
-      description: preset.description,
-      params:      preset.params,
-    },
-  }))
+export async function putPreset(preset: Preset): Promise<void> {
+  const res = await apiFetch(`/api/presets/${preset.id}`, {
+    method: 'PUT',
+    body:   JSON.stringify(preset),
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(text || `Failed to save preset (${res.status})`)
+  }
 }
 
-export async function removePreset(userId: string, presetId: string): Promise<void> {
-  if (!TABLE) return
-  const client = await getDynamoClient()
-  await client.send(new DeleteCommand({
-    TableName: TABLE,
-    Key: { userId, presetId },
-  }))
+export async function removePreset(presetId: string): Promise<void> {
+  const res = await apiFetch(`/api/presets/${presetId}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error(`Failed to delete preset (${res.status})`)
 }

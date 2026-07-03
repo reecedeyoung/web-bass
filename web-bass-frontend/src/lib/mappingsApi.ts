@@ -1,41 +1,16 @@
-import { QueryCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
-import { getDynamoClient } from './dynamodb'
+import { apiFetch } from './apiClient'
 import type { KeyMapping } from '../mappings/types'
 
-const TABLE = import.meta.env.VITE_MAPPINGS_TABLE as string | undefined
-
-export async function fetchMappings(userId: string): Promise<KeyMapping[]> {
-  if (!TABLE) return []
-  const client = await getDynamoClient()
-  const result = await client.send(new QueryCommand({
-    TableName:                 TABLE,
-    KeyConditionExpression:    'userId = :uid',
-    ExpressionAttributeValues: { ':uid': userId },
-  }))
-  return (result.Items ?? []).map(item => ({
-    name:        item['name']        as string,
-    description: item['description'] as string | undefined,
-    version:     item['version']     as number | undefined,
-    mappings:    item['mappings']    as KeyMapping['mappings'],
-  }))
+export async function fetchMappings(): Promise<KeyMapping[]> {
+  const res = await apiFetch('/api/mappings')
+  if (!res.ok) throw new Error(`Failed to load mappings (${res.status})`)
+  return res.json()
 }
 
-export async function putMapping(
-  userId: string,
-  mappingId: string,
-  mapping: KeyMapping,
-): Promise<void> {
-  if (!TABLE) return
-  const client = await getDynamoClient()
-  await client.send(new PutCommand({
-    TableName: TABLE,
-    Item: {
-      userId,
-      mappingId,
-      name:        mapping.name,
-      description: mapping.description,
-      version:     mapping.version,
-      mappings:    mapping.mappings,
-    },
-  }))
+export async function putMapping(mappingId: string, mapping: KeyMapping): Promise<void> {
+  const res = await apiFetch(`/api/mappings/${mappingId}`, {
+    method: 'PUT',
+    body:   JSON.stringify(mapping),
+  })
+  if (!res.ok) throw new Error(`Failed to save mapping (${res.status})`)
 }
