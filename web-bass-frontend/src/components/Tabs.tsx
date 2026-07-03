@@ -48,33 +48,32 @@ function Tabs() {
       </div>
       <div className={`tab-content${FULL_WIDTH_TABS.has(activeTab) ? ' tab-content--full' : ''}`}>
 
-        {activeTab === 'Bass' && (
-          <>
-            <BassGuitar />
+        {/* Bass tab stays mounted to avoid reinitialising the animation on every tab switch */}
+        <div hidden={activeTab !== 'Bass'}>
+          <BassGuitar />
 
-            {/* ── Info icon ── */}
-            <button
-              className={`bass-info-btn${infoOpen ? ' bass-info-btn--active' : ''}`}
-              onClick={toggleInfo}
-              onMouseEnter={showInfo}
-              onMouseLeave={hideInfo}
-              aria-label="About Web Bass"
-              aria-expanded={infoOpen}
-              type="button"
-            >
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                <circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="1.5"/>
-                <line x1="9" y1="8" x2="9" y2="13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                <circle cx="9" cy="5.5" r="1" fill="currentColor"/>
-              </svg>
-            </button>
+          {/* ── Info icon ── */}
+          <button
+            className={`bass-info-btn${infoOpen ? ' bass-info-btn--active' : ''}`}
+            onClick={toggleInfo}
+            onMouseEnter={showInfo}
+            onMouseLeave={hideInfo}
+            aria-label="About Web Bass"
+            aria-expanded={infoOpen}
+            type="button"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="1.5"/>
+              <line x1="9" y1="8" x2="9" y2="13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              <circle cx="9" cy="5.5" r="1" fill="currentColor"/>
+            </svg>
+          </button>
 
-            {/* ── Info overlay ── */}
-            {infoOpen && (
-              <BassInfoOverlay onMouseEnter={showInfo} onMouseLeave={hideInfo} />
-            )}
-          </>
-        )}
+          {/* ── Info overlay ── */}
+          {infoOpen && (
+            <BassInfoOverlay onMouseEnter={showInfo} onMouseLeave={hideInfo} />
+          )}
+        </div>
 
         {activeTab === 'Presets' && <PresetsView />}
         {activeTab === 'Settings' && <SettingsView />}
