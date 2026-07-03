@@ -87,6 +87,11 @@ resource "aws_iam_role_policy" "dynamodb_access" {
           "ForAllValues:StringEquals" = {
             "dynamodb:LeadingKeys" = ["$${cognito-identity.amazonaws.com:sub}"]
           }
+          # Prevent the ForAllValues vacuous-truth bypass: the context key must
+          # be present (non-null) so an absent LeadingKeys cannot satisfy the condition.
+          "Null" = {
+            "dynamodb:LeadingKeys" = "false"
+          }
         }
       }
     ]

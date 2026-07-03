@@ -50,7 +50,7 @@ export default function KeyboardSection() {
 
   useEffect(() => {
     if (!identityId) return
-    fetchMappings(identityId).then(mappings => {
+    fetchMappings().then(mappings => {
       if (mappings.length > 0) applyMapping(mappings[0])
     }).catch(console.error)
   }, [identityId])
@@ -60,7 +60,7 @@ export default function KeyboardSection() {
     if (!identityId) return
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
-      putMapping(identityId, MAPPING_ID, mapping).catch(console.error)
+      putMapping(MAPPING_ID, mapping).catch(console.error)
     }, 1500)
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
   }, [mapping, identityId])
