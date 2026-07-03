@@ -186,3 +186,9 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.presets-save-error {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #e05555;
+}

@@ -8,7 +8,7 @@ import './PresetsView.css'
 export default function PresetsView() {
   const { params, setParams } = useAudio()
   const { isAuthenticated, openLoginModal } = useAuth()
-  const { builtIns, userPresets, activeId, isLoading, load, save, remove } = usePresets()
+  const { builtIns, userPresets, activeId, isLoading, saveError, load, save, remove } = usePresets()
   const [saveName,  setSaveName]  = useState('')
   const [isSaving,  setIsSaving]  = useState(false)
 
@@ -23,6 +23,8 @@ export default function PresetsView() {
     try {
       await save(name, params)
       setSaveName('')
+    } catch {
+      // error is displayed via saveError from usePresets
     } finally {
       setIsSaving(false)
     }
@@ -103,6 +105,9 @@ export default function PresetsView() {
                 {isSaving ? 'Saving…' : 'Save'}
               </button>
             </div>
+            {saveError && (
+              <p className="presets-save-error">{saveError}</p>
+            )}
           </section>
         </>
       )}

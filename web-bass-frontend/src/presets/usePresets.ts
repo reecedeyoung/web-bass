@@ -10,6 +10,7 @@ export function usePresets() {
   const [userPresets, setUserPresets] = useState<Preset[]>([])
   const [activeId,    setActiveId]    = useState<string | null>(null)
   const [isLoading,   setIsLoading]   = useState(false)
+  const [saveError,   setSaveError]   = useState<string | null>(null)
 
   useEffect(() => {
     if (!identityId) {
@@ -20,7 +21,7 @@ export function usePresets() {
     setIsLoading(true)
     fetchPresets(identityId)
       .then(setUserPresets)
-      .catch(console.error)
+      .catch(err => console.error('fetchPresets failed:', err))
       .finally(() => setIsLoading(false))
   }, [identityId])
 
@@ -32,16 +33,25 @@ export function usePresets() {
   const save = useCallback(async (name: string, params: EngineParams): Promise<void> => {
     if (!identityId) return
     const preset: Preset = { id: crypto.randomUUID(), name, params }
+    setSaveError(null)
     setUserPresets(prev => [...prev, preset])
     setActiveId(preset.id)
-    await putPreset(identityId, preset)
+    try {
+      await putPreset(identityId, preset)
+    } catch (err) {
+      console.error('putPreset failed:', err)
+      setUserPresets(prev => prev.filter(p => p.id !== preset.id))
+      setActiveId(null)
+      setSaveError(err instanceof Error ? err.message : 'Failed to save preset')
+      throw err
+    }
   }, [identityId])
 
   const remove = useCallback(async (id: string): Promise<void> => {
     if (!identityId) return
     setUserPresets(prev => prev.filter(p => p.id !== id))
     setActiveId(prev => (prev === id ? null : prev))
-    await removePreset(identityId, id)
+    await removePreset(identityId, id).catch(err => console.error('removePreset failed:', err))
   }, [identityId])
 
   return {
@@ -49,6 +59,7 @@ export function usePresets() {
     userPresets,
     activeId,
     isLoading,
+    saveError,
     load,
     save,
     remove,
