@@ -1,0 +1,40 @@
+name: Integration Tests — Staging
+
+on:
+  workflow_run:
+    workflows: ["Deploy — Staging"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integration-test:
+    name: Run integration tests against staging
+    runs-on: ubuntu-latest
+    environment: staging
+    # Only run if staging deploy succeeded (or if triggered manually)
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: tests/integration
+        run: npm install
+
+      - name: Run integration tests
+        working-directory: tests/integration
+        env:
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          COGNITO_USER_POOL_CLIENT_ID: ${{ secrets.COGNITO_USER_POOL_CLIENT_ID }}
+          API_BASE_URL: https://staging.web-bass.com
+        run: npm test
