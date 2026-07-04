@@ -28,12 +28,43 @@ jobs:
           echo "Confirmation input was '${{ github.event.inputs.confirm }}', expected 'deploy'."
           exit 1
 
-  deploy:
-    name: Build & deploy to production
+  staging-tests:
+    name: Verify staging integration tests pass
     needs: [guard]
     if: always() && (needs.guard.result == 'success' || needs.guard.result == 'skipped')
     runs-on: ubuntu-latest
-    environment: prod  # must match github_subject_claim in terraform.tfvars
+    environment: staging  # pulls TEST_USER_* and COGNITO_USER_POOL_CLIENT_ID from staging secrets
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install test dependencies
+        working-directory: tests/integration
+        run: npm install
+
+      - name: Run integration tests against staging
+        working-directory: tests/integration
+        run: npm test
+        env:
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          COGNITO_USER_POOL_CLIENT_ID: ${{ secrets.COGNITO_USER_POOL_CLIENT_ID }}
+          API_BASE_URL: https://staging.web-bass.com
+
+  deploy:
+    name: Build & deploy to production
+    needs: [guard, staging-tests]
+    # Both guard and staging-tests must have succeeded (or guard was skipped for release events).
+    if: >
+      always() &&
+      (needs.guard.result == 'success' || needs.guard.result == 'skipped') &&
+      needs.staging-tests.result == 'success'
+    runs-on: ubuntu-latest
+    environment: prod
 
     steps:
       - uses: actions/checkout@v4
