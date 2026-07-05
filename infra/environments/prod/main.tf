@@ -52,14 +52,6 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
-# ── Networking ─────────────────────────────────────────────────────────────
-
-module "networking" {
-  source      = "../../modules/networking"
-  project     = var.project
-  environment = var.environment
-}
-
 # ── Cognito ────────────────────────────────────────────────────────────────
 
 module "cognito" {
