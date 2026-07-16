@@ -146,6 +146,15 @@ module "cicd_role" {
   lambda_function_name       = module.api.lambda_function_name
 }
 
+# ── RUM ───────────────────────────────────────────────────────────────────────
+
+module "rum" {
+  source      = "../../modules/rum"
+  project     = var.project
+  environment = var.environment
+  domain      = var.domain_name
+}
+
 # ── Cloudflare DNS record → staging CloudFront ────────────────────────────
 
 resource "cloudflare_record" "staging" {

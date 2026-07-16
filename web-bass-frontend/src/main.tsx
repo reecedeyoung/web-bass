@@ -4,8 +4,10 @@ import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './context/AuthContext'
 import { configureAmplify } from './lib/amplify'
+import { initRum } from './lib/rum'
 
 configureAmplify()
+initRum()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

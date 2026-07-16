@@ -47,11 +47,6 @@ output "deploy_role_arn" {
   value       = module.cicd_role.role_arn
 }
 
-output "api_elastic_ip" {
-  description = "Reserved Elastic IP — not currently used"
-  value       = module.networking.elastic_ip_address
-}
-
 output "api_gateway_url" {
   description = "API Gateway invoke URL"
   value       = module.api.api_gateway_url
@@ -60,4 +55,14 @@ output "api_gateway_url" {
 output "lambda_function_name" {
   description = "Set as LAMBDA_FUNCTION_NAME secret in the GitHub prod environment"
   value       = module.api.lambda_function_name
+}
+
+output "rum_app_monitor_id" {
+  description = "Set as VITE_RUM_APP_MONITOR_ID in the frontend build"
+  value       = module.rum.app_monitor_id
+}
+
+output "rum_identity_pool_id" {
+  description = "Set as VITE_RUM_IDENTITY_POOL_ID in the frontend build"
+  value       = module.rum.identity_pool_id
 }

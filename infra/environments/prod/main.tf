@@ -147,6 +147,15 @@ module "cicd_role" {
   lambda_function_name       = module.api.lambda_function_name
 }
 
+# ── RUM ───────────────────────────────────────────────────────────────────────
+
+module "rum" {
+  source      = "../../modules/rum"
+  project     = var.project
+  environment = var.environment
+  domain      = var.domain_name
+}
+
 # ── Cloudflare DNS records → CloudFront ───────────────────────────────────
 # proxied = false — CloudFront handles SSL; Cloudflare proxy would conflict.
 
